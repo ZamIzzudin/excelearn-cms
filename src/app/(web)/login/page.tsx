@@ -42,10 +42,9 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-2xl mb-4">
-            <LogIn className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-slate-800 mb-2">Welcome Back</h1>
+          <h1 className="text-2xl font-bold text-slate-800 mb-2">
+            Excelearn Internal
+          </h1>
           <p className="text-slate-600">Sign in to your dashboard</p>
         </div>
 
@@ -56,6 +55,7 @@ export default function LoginPage() {
             onFinish={handleLogin}
             layout="vertical"
             className="space-y-6"
+            requiredMark={false}
           >
             <InputForm
               type="text"
@@ -66,7 +66,7 @@ export default function LoginPage() {
               required
               className="mb-0"
             />
-            
+
             <InputForm
               type="password"
               name="password"
@@ -77,7 +77,7 @@ export default function LoginPage() {
               className="mb-0"
             />
 
-            <button 
+            <button
               className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               type="submit"
               disabled={isPending}

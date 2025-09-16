@@ -1,15 +1,36 @@
 /** @format */
 
 import React from "react";
-import { Input, InputNumber, Form, Select, DatePicker, Upload, Switch, Radio, Checkbox } from "antd";
+import {
+  Input,
+  InputNumber,
+  Form,
+  Select,
+  DatePicker,
+  Upload,
+  Switch,
+  Radio,
+  Checkbox,
+} from "antd";
 import { UploadOutlined } from "@ant-design/icons";
+import { CircleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const { TextArea } = Input;
 const { Option } = Select;
 
 type InputFormProps = {
-  type?: "text" | "password" | "number" | "textarea" | "select" | "date" | "file" | "switch" | "radio" | "checkbox";
+  type?:
+    | "text"
+    | "password"
+    | "number"
+    | "textarea"
+    | "select"
+    | "date"
+    | "file"
+    | "switch"
+    | "radio"
+    | "checkbox";
   name: string;
   form?: Record<string, any>;
   setForm?: React.Dispatch<React.SetStateAction<Record<string, any>>>;
@@ -57,10 +78,11 @@ const InputForm: React.FC<InputFormProps> = ({
     className
   );
 
-  const labelClass = "text-sm font-medium text-slate-700 mb-2 block";
+  const labelClass =
+    "text-sm font-medium text-slate-700 mb-2 flex items-center gap-1";
 
   let inputElement;
-  
+
   switch (type) {
     case "text":
       inputElement = (
@@ -71,7 +93,7 @@ const InputForm: React.FC<InputFormProps> = ({
           disabled={disabled}
           size={size}
           variant={variant}
-          prefix={icon}
+          prefix={<div className="mr-3">{icon}</div>}
           className={baseInputClass}
         />
       );
@@ -86,7 +108,7 @@ const InputForm: React.FC<InputFormProps> = ({
           disabled={disabled}
           size={size}
           variant={variant}
-          prefix={icon}
+          prefix={<div className="mr-3">{icon}</div>}
           className={baseInputClass}
         />
       );
@@ -165,10 +187,12 @@ const InputForm: React.FC<InputFormProps> = ({
           accept={accept}
           className="w-full"
         >
-          <div className={cn(
-            "border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-indigo-300 transition-colors cursor-pointer",
-            disabled && "opacity-50 cursor-not-allowed"
-          )}>
+          <div
+            className={cn(
+              "border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-indigo-300 transition-colors cursor-pointer",
+              disabled && "opacity-50 cursor-not-allowed"
+            )}
+          >
             <UploadOutlined className="text-2xl text-slate-400 mb-2" />
             <p className="text-slate-600">Click or drag files to upload</p>
             {accept && (
@@ -233,7 +257,7 @@ const InputForm: React.FC<InputFormProps> = ({
           disabled={disabled}
           size={size}
           variant={variant}
-          prefix={icon}
+          prefix={<div className="mr-3">{icon}</div>}
           className={baseInputClass}
         />
       );
@@ -243,11 +267,18 @@ const InputForm: React.FC<InputFormProps> = ({
   return (
     <Form.Item
       className={cn("mb-6", className)}
-      label={label && <span className={labelClass}>{label}</span>}
+      label={
+        label && (
+          <span className={labelClass}>
+            {label}
+            {required && <CircleAlert size={12} color="gray" />}
+          </span>
+        )
+      }
       name={name}
       rules={
         required
-          ? [{ required: true, message: `${label || 'Field'} is required` }]
+          ? [{ required: true, message: `${label || "Field"} is required` }]
           : []
       }
     >
