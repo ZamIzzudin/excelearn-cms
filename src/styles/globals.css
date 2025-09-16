@@ -1,0 +1,44 @@
+/** @format */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* 
+@font-face {
+  font-family: "CustomFont";
+  src: url("/Font.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+} */
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+* {
+  font-family: "CustomFont", Arial, Helvetica, sans-serif !important;
+}
+
+body {
+  color: var(--background);
+  background: var(--background);
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+.game-container {
+  margin-top: 10vh;
+  transform: scale(3);
+}
