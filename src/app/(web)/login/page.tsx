@@ -9,6 +9,7 @@ import { useLogin } from "@/hooks/useAuth";
 import { Form } from "antd";
 import InputForm from "@/components/Form";
 import Notification from "@/components/Notification";
+import { User, Lock, LogIn } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -37,30 +38,72 @@ export default function LoginPage() {
   };
 
   return (
-    <section className="min-h-[100dvh] min-w-[100dvw] flex items-center justify-center">
-      <Form
-        form={formAction}
-        onFinish={handleLogin}
-        layout="vertical"
-        className="bg-white p-5 rounded flex flex-col items-center"
-      >
-        <h1 className="text-[24px] font-[600]">Login</h1>
-        <InputForm
-          type="text"
-          name="username"
-          placeholder="Masukkan username"
-          label="Username"
-        />
-        <InputForm
-          type="password"
-          name="password"
-          placeholder="Masukkan password"
-          label="Password"
-        />
-        <button className="text-white bg-[#639b56] w-full py-2" type="submit">
-          {isPending ? "Loading" : "Login"}
-        </button>
-      </Form>
-    </section>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-2xl mb-4">
+            <LogIn className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-slate-800 mb-2">Welcome Back</h1>
+          <p className="text-slate-600">Sign in to your dashboard</p>
+        </div>
+
+        {/* Login Form */}
+        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
+          <Form
+            form={formAction}
+            onFinish={handleLogin}
+            layout="vertical"
+            className="space-y-6"
+          >
+            <InputForm
+              type="text"
+              name="username"
+              placeholder="Enter your username"
+              label="Username"
+              icon={<User className="w-5 h-5 text-slate-400" />}
+              required
+              className="mb-0"
+            />
+            
+            <InputForm
+              type="password"
+              name="password"
+              placeholder="Enter your password"
+              label="Password"
+              icon={<Lock className="w-5 h-5 text-slate-400" />}
+              required
+              className="mb-0"
+            />
+
+            <button 
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              type="submit"
+              disabled={isPending}
+            >
+              {isPending ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Signing in...
+                </>
+              ) : (
+                <>
+                  <LogIn className="w-5 h-5" />
+                  Sign In
+                </>
+              )}
+            </button>
+          </Form>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center mt-8">
+          <p className="text-sm text-slate-500">
+            Secure dashboard access for authorized users only
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
