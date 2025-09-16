@@ -16,8 +16,9 @@ import {
   GlobalActions,
   GlobalProviderProps,
   Actions,
-} from "@/interface/type";
+} from "src/interface/type";
 import { LocalToken, LocalRefreshToken } from "./var";
+import { cookies } from "@/lib/utils";
 
 const initialState = {
   hasLogin: false,
@@ -46,7 +47,7 @@ function globalReducer(state: GlobalState, action: Actions): GlobalState {
   }
 }
 
-export function Middleware({ children }: { children: ReactNode }) {
+export async function Middleware({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [state, dispatch] = useReducer(globalReducer, initialState);
 
@@ -63,8 +64,8 @@ export function Middleware({ children }: { children: ReactNode }) {
       dispatch({ type: "LOGOUT" });
       if (typeof window !== "undefined") {
         localStorage.removeItem(LocalToken);
-        cookieStore.delete(LocalToken);
-        cookieStore.delete(LocalRefreshToken);
+        cookies.remove(LocalToken);
+        cookies.remove(LocalRefreshToken);
         router.push("/login");
       }
     },

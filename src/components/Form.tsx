@@ -14,7 +14,7 @@ import {
 } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { CircleAlert } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "src/lib/utils";
 
 const { TextArea } = Input;
 const { Option } = Select;

@@ -4,7 +4,8 @@
 import { useMutation, useQuery, UseQueryResult } from "@tanstack/react-query";
 import { Login } from "./serviceAuth";
 
-import { LocalToken } from "@/lib/var";
+import { LocalToken } from "src/lib/var";
+import { cookies } from "@/lib/utils";
 
 export const useLogin = () => {
   return useMutation({
@@ -16,7 +17,7 @@ export const useLogin = () => {
         if (response.status !== 200) throw new Error(response.message);
 
         window.localStorage.setItem(LocalToken, response.user.access_token);
-        window.cookieStore.set(LocalToken, response.user.access_token);
+        cookies.add(LocalToken, response.user.access_token);
 
         return {
           data: response.user,

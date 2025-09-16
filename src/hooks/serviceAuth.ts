@@ -2,7 +2,7 @@
 
 "use server";
 
-import AxiosClient from "@/lib/axios";
+import AxiosClient from "src/lib/axios";
 
 export async function Login(payload: { username: string; password: string }) {
   try {

@@ -2,13 +2,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useGlobalState } from "@/lib/middleware";
+import { useGlobalState } from "src/lib/middleware";
 
-import { useLogin } from "@/hooks/useAuth";
+import { useLogin } from "src/hooks/useAuth";
 
 import { Form } from "antd";
-import InputForm from "@/components/Form";
-import Notification from "@/components/Notification";
+import InputForm from "src/components/Form";
+import Notification from "src/components/Notification";
 import { User, Lock, LogIn } from "lucide-react";
 
 export default function LoginPage() {

@@ -3,11 +3,11 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { TanstackProvider } from "@/lib/tanstack";
-import { Middleware } from "@/lib/middleware";
+import { TanstackProvider } from "src/lib/tanstack";
+import { Middleware } from "src/lib/middleware";
 import { Toaster } from "react-hot-toast";
 
-import LoadingPage from "@/components/LoadingPage";
+import LoadingPage from "src/components/LoadingPage";
 
 import "@/styles/globals.css";
 

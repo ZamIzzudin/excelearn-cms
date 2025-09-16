@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import { Save, Bell, Shield, User, Palette, Globe } from "lucide-react";
-import InputForm from "@/components/Form";
+import InputForm from "src/components/Form";
 import { Form } from "antd";
 
 const settingsSections = [
@@ -26,7 +26,9 @@ export default function SettingsPage() {
   const renderProfileSettings = () => (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-slate-800 mb-4">Profile Information</h3>
+        <h3 className="text-lg font-semibold text-slate-800 mb-4">
+          Profile Information
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputForm
             type="text"
@@ -56,12 +58,10 @@ export default function SettingsPage() {
       </div>
 
       <div>
-        <h3 className="text-lg font-semibold text-slate-800 mb-4">Profile Picture</h3>
-        <InputForm
-          type="file"
-          name="avatar"
-          accept="image/*"
-        />
+        <h3 className="text-lg font-semibold text-slate-800 mb-4">
+          Profile Picture
+        </h3>
+        <InputForm type="file" name="avatar" accept="image/*" />
       </div>
 
       <div>
@@ -78,19 +78,25 @@ export default function SettingsPage() {
   const renderNotificationSettings = () => (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-slate-800 mb-4">Email Notifications</h3>
+        <h3 className="text-lg font-semibold text-slate-800 mb-4">
+          Email Notifications
+        </h3>
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl">
             <div>
               <p className="font-medium text-slate-800">New Messages</p>
-              <p className="text-sm text-slate-600">Get notified when you receive new messages</p>
+              <p className="text-sm text-slate-600">
+                Get notified when you receive new messages
+              </p>
             </div>
             <InputForm type="switch" name="emailMessages" />
           </div>
           <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl">
             <div>
               <p className="font-medium text-slate-800">Weekly Reports</p>
-              <p className="text-sm text-slate-600">Receive weekly summary reports</p>
+              <p className="text-sm text-slate-600">
+                Receive weekly summary reports
+              </p>
             </div>
             <InputForm type="switch" name="emailReports" />
           </div>
@@ -98,12 +104,16 @@ export default function SettingsPage() {
       </div>
 
       <div>
-        <h3 className="text-lg font-semibold text-slate-800 mb-4">Push Notifications</h3>
+        <h3 className="text-lg font-semibold text-slate-800 mb-4">
+          Push Notifications
+        </h3>
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl">
             <div>
               <p className="font-medium text-slate-800">System Updates</p>
-              <p className="text-sm text-slate-600">Get notified about system maintenance and updates</p>
+              <p className="text-sm text-slate-600">
+                Get notified about system maintenance and updates
+              </p>
             </div>
             <InputForm type="switch" name="pushUpdates" />
           </div>
@@ -115,7 +125,9 @@ export default function SettingsPage() {
   const renderSecuritySettings = () => (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-slate-800 mb-4">Change Password</h3>
+        <h3 className="text-lg font-semibold text-slate-800 mb-4">
+          Change Password
+        </h3>
         <div className="space-y-4">
           <InputForm
             type="password"
@@ -139,12 +151,16 @@ export default function SettingsPage() {
       </div>
 
       <div>
-        <h3 className="text-lg font-semibold text-slate-800 mb-4">Two-Factor Authentication</h3>
+        <h3 className="text-lg font-semibold text-slate-800 mb-4">
+          Two-Factor Authentication
+        </h3>
         <div className="p-4 border border-slate-200 rounded-xl">
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium text-slate-800">Enable 2FA</p>
-              <p className="text-sm text-slate-600">Add an extra layer of security to your account</p>
+              <p className="text-sm text-slate-600">
+                Add an extra layer of security to your account
+              </p>
             </div>
             <InputForm type="switch" name="twoFactor" />
           </div>
@@ -169,7 +185,9 @@ export default function SettingsPage() {
       </div>
 
       <div>
-        <h3 className="text-lg font-semibold text-slate-800 mb-4">Color Scheme</h3>
+        <h3 className="text-lg font-semibold text-slate-800 mb-4">
+          Color Scheme
+        </h3>
         <InputForm
           type="select"
           name="colorScheme"
@@ -188,7 +206,9 @@ export default function SettingsPage() {
   const renderGeneralSettings = () => (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-slate-800 mb-4">Language & Region</h3>
+        <h3 className="text-lg font-semibold text-slate-800 mb-4">
+          Language & Region
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputForm
             type="select"
@@ -216,12 +236,16 @@ export default function SettingsPage() {
       </div>
 
       <div>
-        <h3 className="text-lg font-semibold text-slate-800 mb-4">Data & Privacy</h3>
+        <h3 className="text-lg font-semibold text-slate-800 mb-4">
+          Data & Privacy
+        </h3>
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl">
             <div>
               <p className="font-medium text-slate-800">Analytics</p>
-              <p className="text-sm text-slate-600">Help improve our service by sharing usage data</p>
+              <p className="text-sm text-slate-600">
+                Help improve our service by sharing usage data
+              </p>
             </div>
             <InputForm type="switch" name="analytics" />
           </div>
@@ -252,7 +276,9 @@ export default function SettingsPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-slate-800">Settings</h1>
-        <p className="text-slate-600 mt-1">Manage your account preferences and configuration</p>
+        <p className="text-slate-600 mt-1">
+          Manage your account preferences and configuration
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -286,7 +312,7 @@ export default function SettingsPage() {
           <div className="bg-white rounded-2xl border border-slate-200 p-6">
             <Form form={form} onFinish={handleSaveSettings} layout="vertical">
               {renderContent()}
-              
+
               <div className="flex justify-end pt-6 border-t border-slate-200 mt-8">
                 <button
                   type="submit"
