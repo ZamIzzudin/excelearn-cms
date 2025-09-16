@@ -1,7 +1,7 @@
 /** @format */
 "use client";
 
-import { useMutation, useQuery, UseQueryResult } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Login } from "./serviceAuth";
 
 import { LocalToken } from "src/lib/var";
@@ -24,21 +24,8 @@ export const useLogin = () => {
           token: response.user.access_token,
         };
       } catch (error: any) {
-        throw new Error(error.message || "Gagal Melakukan Login");
+        throw new Error(error.message || "Failed to Login");
       }
     },
   });
-};
-
-export const useUser = (params: string): UseQueryResult<any> => {
-  const queryResult = useQuery({
-    queryKey: ["user", params],
-    queryFn: async () => {
-      return {};
-    },
-    enabled: !!params,
-    refetchOnWindowFocus: false,
-  });
-
-  return queryResult;
 };

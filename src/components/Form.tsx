@@ -93,7 +93,7 @@ const InputForm: React.FC<InputFormProps> = ({
           disabled={disabled}
           size={size}
           variant={variant}
-          prefix={<div className="mr-3">{icon}</div>}
+          prefix={icon && <div className="mr-3">{icon}</div>}
           className={baseInputClass}
         />
       );
@@ -108,7 +108,7 @@ const InputForm: React.FC<InputFormProps> = ({
           disabled={disabled}
           size={size}
           variant={variant}
-          prefix={<div className="mr-3">{icon}</div>}
+          prefix={icon && <div className="mr-3">{icon}</div>}
           className={baseInputClass}
         />
       );
@@ -257,7 +257,7 @@ const InputForm: React.FC<InputFormProps> = ({
           disabled={disabled}
           size={size}
           variant={variant}
-          prefix={<div className="mr-3">{icon}</div>}
+          prefix={icon && <div className="mr-3">{icon}</div>}
           className={baseInputClass}
         />
       );

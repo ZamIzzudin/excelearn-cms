@@ -28,11 +28,11 @@ export default function LoginPage() {
       onSuccess(resp) {
         actions.setAuth(resp.data);
         actions.setToken(resp.token);
-        Notification("success", "Berhasil Login");
+        Notification("success", "Login Success");
         router.push("/");
       },
       onError(error) {
-        Notification("error", error.message || "Gagal Login");
+        Notification("error", error.message || "Login Failed");
       },
     });
   };

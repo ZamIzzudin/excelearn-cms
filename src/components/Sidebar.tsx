@@ -29,8 +29,6 @@ export default function Sidebar() {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  console.log(state);
-
   return (
     <>
       {/* Mobile Overlay */}

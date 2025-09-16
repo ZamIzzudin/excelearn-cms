@@ -3,6 +3,7 @@
 "use client";
 
 import { useState } from "react";
+
 import {
   Search,
   Plus,
@@ -12,58 +13,64 @@ import {
   Trash2,
 } from "lucide-react";
 import InputForm from "src/components/Form";
+import Notification from "@/components/Notification";
 import { Form } from "antd";
 
-const mockUsers = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "john@example.com",
-    role: "Admin",
-    status: "Active",
-    lastLogin: "2024-01-15",
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    email: "jane@example.com",
-    role: "User",
-    status: "Active",
-    lastLogin: "2024-01-14",
-  },
-  {
-    id: 3,
-    name: "Bob Johnson",
-    email: "bob@example.com",
-    role: "User",
-    status: "Inactive",
-    lastLogin: "2024-01-10",
-  },
-  {
-    id: 4,
-    name: "Alice Brown",
-    email: "alice@example.com",
-    role: "Moderator",
-    status: "Active",
-    lastLogin: "2024-01-15",
-  },
-];
+import dayjs from "dayjs";
+import { useUser, useRegister, useDelete } from "./hook";
 
 export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [form] = Form.useForm();
 
-  const filteredUsers = mockUsers.filter(
-    (user) =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const { data = [], isLoading, refetch } = useUser();
+  const { mutate: registerUser, isPending: registerPending } = useRegister();
+  const { mutate: deleteUser, isPending: deletePending } = useDelete();
+
+  const filteredUsers = data?.filter((user: any) =>
+    user.display_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddUser = (values: any) => {
-    console.log("Adding user:", values);
-    setShowAddModal(false);
-    form.resetFields();
+  const handleAddUser = async () => {
+    try {
+      await form.validateFields();
+
+      const data = form.getFieldsValue();
+
+      if (data.retype_password !== data.password)
+        return Notification("error", "Password Not Match");
+
+      registerUser(data, {
+        onSuccess: () => {
+          Notification("success", "Success to Register User");
+          setShowAddModal(false);
+          form.resetFields();
+          refetch();
+        },
+        onError: () => {
+          Notification("error", "Failed to Register User");
+        },
+      });
+    } catch (e) {
+      Notification("error", "Server Error");
+    }
+  };
+
+  const handleDeleteUser = async (id: string) => {
+    try {
+      deleteUser(id, {
+        onSuccess: () => {
+          Notification("success", "Success to Register User");
+          refetch();
+        },
+        onError: () => {
+          Notification("error", "Failed to Delete User");
+        },
+      });
+    } catch (e) {
+      Notification("error", "Server Error");
+    }
   };
 
   return (
@@ -106,96 +113,93 @@ export default function UsersPage() {
       </div>
 
       {/* Users Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="text-left py-4 px-6 font-medium text-slate-700">
-                  User
-                </th>
-                <th className="text-left py-4 px-6 font-medium text-slate-700">
-                  Role
-                </th>
-                <th className="text-left py-4 px-6 font-medium text-slate-700">
-                  Status
-                </th>
-                <th className="text-left py-4 px-6 font-medium text-slate-700">
-                  Last Login
-                </th>
-                <th className="text-right py-4 px-6 font-medium text-slate-700">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {filteredUsers.map((user) => (
-                <tr
-                  key={user.id}
-                  className="hover:bg-slate-50 transition-colors"
-                >
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                        <span className="text-indigo-600 font-medium text-sm">
-                          {user.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-slate-800">
-                          {user.name}
-                        </p>
-                        <p className="text-sm text-slate-500">{user.email}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-4 px-6">
-                    <span
-                      className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${
-                        user.role === "Admin"
-                          ? "bg-purple-100 text-purple-700"
-                          : user.role === "Moderator"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6">
-                    <span
-                      className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${
-                        user.status === "Active"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {user.status}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6 text-slate-600">{user.lastLogin}</td>
-                  <td className="py-4 px-6">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-                        <Edit className="w-4 h-4 text-slate-500" />
-                      </button>
-                      <button className="p-2 hover:bg-red-50 rounded-lg transition-colors">
-                        <Trash2 className="w-4 h-4 text-red-500" />
-                      </button>
-                      <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-                        <MoreHorizontal className="w-4 h-4 text-slate-500" />
-                      </button>
-                    </div>
-                  </td>
+      {isLoading ? (
+        <div className="animate-pulse bg-gray-100 w-full min-h-[30dvh] rounded-xl"></div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="text-left py-4 px-6 font-medium text-slate-700">
+                    User
+                  </th>
+                  <th className="text-left py-4 px-6 font-medium text-slate-700">
+                    Role
+                  </th>
+
+                  <th className="text-left py-4 px-6 font-medium text-slate-700">
+                    Created At
+                  </th>
+                  <th className="text-right py-4 px-6 font-medium text-slate-700">
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {filteredUsers?.map((user: any) => (
+                  <tr
+                    key={user._id}
+                    className="hover:bg-slate-50 transition-colors"
+                  >
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                          <span className="text-indigo-600 font-medium text-sm">
+                            {user?.username ? user?.username[0] : "A"}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-800">
+                            {user.display_name}
+                          </p>
+                          <p className="text-sm text-slate-500 capitalize">
+                            {user?.username?.toLowerCase() || "-"}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <span
+                        className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${
+                          user.role === "Admin"
+                            ? "bg-purple-100 text-purple-700"
+                            : user.role === "SUPERADMIN"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-gray-100 text-gray-700"
+                        }`}
+                      >
+                        {user?.role}
+                      </span>
+                    </td>
+
+                    <td className="py-4 px-6 text-slate-600">
+                      {dayjs(user.created_at).format("DD MMMM YYYY")}
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center justify-end gap-2">
+                        <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+                          <Edit className="w-4 h-4 text-slate-500" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteUser(user?._id)}
+                          type="button"
+                          className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </button>
+                        <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+                          <MoreHorizontal className="w-4 h-4 text-slate-500" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Add User Modal */}
       {showAddModal && (
@@ -204,31 +208,19 @@ export default function UsersPage() {
             <h2 className="text-xl font-bold text-slate-800 mb-6">
               Add New User
             </h2>
-            <Form form={form} onFinish={handleAddUser} layout="vertical">
+            <Form form={form} layout="vertical" requiredMark={false}>
               <InputForm
                 type="text"
-                name="name"
+                name="display_name"
                 label="Full Name"
                 placeholder="Enter full name"
                 required
               />
               <InputForm
                 type="text"
-                name="email"
-                label="Email Address"
-                placeholder="Enter email address"
-                required
-              />
-              <InputForm
-                type="select"
-                name="role"
-                label="Role"
-                placeholder="Select role"
-                options={[
-                  { label: "Admin", value: "admin" },
-                  { label: "Moderator", value: "moderator" },
-                  { label: "User", value: "user" },
-                ]}
+                name="username"
+                label="Username"
+                placeholder="Enter username"
                 required
               />
               <InputForm
@@ -236,6 +228,13 @@ export default function UsersPage() {
                 name="password"
                 label="Password"
                 placeholder="Enter password"
+                required
+              />
+              <InputForm
+                type="password"
+                name="retype_password"
+                label="Retype Password"
+                placeholder="Retype password"
                 required
               />
 
@@ -248,7 +247,8 @@ export default function UsersPage() {
                   Cancel
                 </button>
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={() => handleAddUser()}
                   className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
                 >
                   Add User
