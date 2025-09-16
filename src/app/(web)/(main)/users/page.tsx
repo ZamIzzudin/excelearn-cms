@@ -146,7 +146,7 @@ export default function UsersPage() {
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
                           <span className="text-indigo-600 font-medium text-sm">
-                            {user?.username ? user?.username[0] : "A"}
+                            {user?.display_name ? user?.display_name[0]?.toUpperCase() : "U"}
                           </span>
                         </div>
                         <div>
