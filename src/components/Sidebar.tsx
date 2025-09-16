@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useGlobalState } from "src/lib/middleware";
+import { useLogout } from "src/hooks/useAuth";
 import { useState } from "react";
 
 import {
@@ -27,6 +28,7 @@ const menuItems = [
 export default function Sidebar() {
   const { state, actions } = useGlobalState();
   const pathname = usePathname();
+  const { mutate: logout, isPending: logoutPending } = useLogout();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
@@ -127,23 +129,32 @@ export default function Sidebar() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-slate-800 truncate">
-                  {state.user.display_name}
+                  {state.user?.display_name || "User"}
                 </p>
                 <p className="text-xs text-slate-500 truncate capitalize">
-                  {state.user.role?.toLowerCase()}
+                  {state.user?.role?.toLowerCase() || "user"}
                 </p>
               </div>
             </div>
           )}
 
           <button
-            onClick={() => actions.logout()}
+            onClick={() => logout()}
+            disabled={logoutPending}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200 w-full ${
               isCollapsed ? "lg:justify-center lg:px-2" : ""
-            }`}
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
-            <LogOut className="w-5 h-5" />
-            {!isCollapsed && <span className="font-medium">Logout</span>}
+            {logoutPending ? (
+              <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <LogOut className="w-5 h-5" />
+            )}
+            {!isCollapsed && (
+              <span className="font-medium">
+                {logoutPending ? "Logging out..." : "Logout"}
+              </span>
+            )}
           </button>
         </div>
       </div>
