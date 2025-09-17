@@ -3,29 +3,29 @@
 "use client";
 
 import { useState } from "react";
+import { useGlobalState } from "@/lib/middleware";
+import { useRouter } from "next/navigation";
 
-import {
-  Search,
-  Plus,
-  Filter,
-  MoreHorizontal,
-  Edit,
-  Trash2,
-} from "lucide-react";
+import { Search, Plus, Filter, Edit, Trash2 } from "lucide-react";
 import InputForm from "src/components/Form";
 import Notification from "@/components/Notification";
 import { Form } from "antd";
 
 import dayjs from "dayjs";
-import { useUser, useRegister, useDelete } from "./hook";
+import { useUser, useRegister, useDelete, useUpdate } from "./hook";
 
 export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [show, setShow] = useState<"NONE" | "ADD" | "UPDATE">("NONE");
+  const [formAction, setFormAction] = useState<any>();
+
+  const router = useRouter();
+  const { state } = useGlobalState();
   const [form] = Form.useForm();
 
   const { data = [], isLoading, refetch } = useUser();
   const { mutate: registerUser, isPending: registerPending } = useRegister();
+  const { mutate: updateUser, isPending: updatePending } = useUpdate();
   const { mutate: deleteUser, isPending: deletePending } = useDelete();
 
   const filteredUsers = data?.filter((user: any) =>
@@ -36,20 +36,44 @@ export default function UsersPage() {
     try {
       await form.validateFields();
 
-      const data = form.getFieldsValue();
-
-      if (data.retype_password !== data.password)
+      if (formAction.retype_password !== formAction.password)
         return Notification("error", "Password Not Match");
 
-      registerUser(data, {
+      registerUser(formAction, {
         onSuccess: () => {
           Notification("success", "Success to Register User");
-          setShowAddModal(false);
+          setShow("NONE");
           form.resetFields();
           refetch();
         },
         onError: () => {
           Notification("error", "Failed to Register User");
+        },
+      });
+    } catch (e) {
+      Notification("error", "Server Error");
+    }
+  };
+
+  const handleUpdateUser = async () => {
+    try {
+      await form.validateFields();
+
+      if (
+        formAction.password &&
+        formAction.retype_password !== formAction.password
+      )
+        return Notification("error", "Password Not Match");
+
+      updateUser(formAction, {
+        onSuccess: () => {
+          Notification("success", "Success to Update User");
+          setShow("NONE");
+          form.resetFields();
+          refetch();
+        },
+        onError: () => {
+          Notification("error", "Failed to Update User");
         },
       });
     } catch (e) {
@@ -73,8 +97,10 @@ export default function UsersPage() {
     }
   };
 
+  if (!state.user || state.user.role !== "SUPERADMIN") return router.push("/");
+
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-5">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -84,7 +110,7 @@ export default function UsersPage() {
           </p>
         </div>
         <button
-          onClick={() => setShowAddModal(true)}
+          onClick={() => setShow("ADD")}
           className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
         >
           <Plus className="w-5 h-5" />
@@ -146,7 +172,9 @@ export default function UsersPage() {
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
                           <span className="text-indigo-600 font-medium text-sm">
-                            {user?.display_name ? user?.display_name[0]?.toUpperCase() : "U"}
+                            {user?.display_name
+                              ? user?.display_name[0]?.toUpperCase()
+                              : "U"}
                           </span>
                         </div>
                         <div>
@@ -176,23 +204,32 @@ export default function UsersPage() {
                     <td className="py-4 px-6 text-slate-600">
                       {dayjs(user.created_at).format("DD MMMM YYYY")}
                     </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center justify-end gap-2">
-                        <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-                          <Edit className="w-4 h-4 text-slate-500" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteUser(user?._id)}
-                          type="button"
-                          className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4 text-red-500" />
-                        </button>
-                        <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-                          <MoreHorizontal className="w-4 h-4 text-slate-500" />
-                        </button>
-                      </div>
-                    </td>
+
+                    {user?.role !== "SUPERADMIN" ? (
+                      <td className="py-4 px-6">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => {
+                              setShow("UPDATE");
+                              setFormAction(user);
+                              form.setFieldsValue(user);
+                            }}
+                            className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                          >
+                            <Edit className="w-4 h-4 text-slate-500" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteUser(user?._id)}
+                            type="button"
+                            className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </button>
+                        </div>
+                      </td>
+                    ) : (
+                      <td className="py-4 px-6" />
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -202,8 +239,8 @@ export default function UsersPage() {
       )}
 
       {/* Add User Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      {show === "ADD" && (
+        <div className="fixed bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 top-0 right-0 left-0 bottom-0 m-0">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
             <h2 className="text-xl font-bold text-slate-800 mb-6">
               Add New User
@@ -215,6 +252,8 @@ export default function UsersPage() {
                 label="Full Name"
                 placeholder="Enter full name"
                 required
+                form={formAction}
+                setForm={(e: any) => setFormAction(e)}
               />
               <InputForm
                 type="text"
@@ -222,6 +261,8 @@ export default function UsersPage() {
                 label="Username"
                 placeholder="Enter username"
                 required
+                form={formAction}
+                setForm={(e: any) => setFormAction(e)}
               />
               <InputForm
                 type="password"
@@ -229,6 +270,8 @@ export default function UsersPage() {
                 label="Password"
                 placeholder="Enter password"
                 required
+                form={formAction}
+                setForm={(e: any) => setFormAction(e)}
               />
               <InputForm
                 type="password"
@@ -236,12 +279,14 @@ export default function UsersPage() {
                 label="Retype Password"
                 placeholder="Retype password"
                 required
+                form={formAction}
+                setForm={(e: any) => setFormAction(e)}
               />
 
               <div className="flex gap-3 mt-6">
                 <button
                   type="button"
-                  onClick={() => setShowAddModal(false)}
+                  onClick={() => setShow("NONE")}
                   className="flex-1 px-4 py-2 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors"
                 >
                   Cancel
@@ -249,9 +294,77 @@ export default function UsersPage() {
                 <button
                   type="button"
                   onClick={() => handleAddUser()}
+                  disabled={registerPending}
                   className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
                 >
-                  Add User
+                  {registerPending ? "Loading..." : "Add User"}
+                </button>
+              </div>
+            </Form>
+          </div>
+        </div>
+      )}
+
+      {show === "UPDATE" && (
+        <div className="fixed bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 top-0 right-0 left-0 bottom-0 m-0">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold text-slate-800 mb-6">
+              Update User
+            </h2>
+            <Form form={form} layout="vertical" requiredMark={false}>
+              <InputForm
+                type="text"
+                name="display_name"
+                label="Full Name"
+                placeholder="Enter full name"
+                required
+                form={formAction}
+                setForm={(e: any) => setFormAction(e)}
+              />
+              <InputForm
+                type="text"
+                name="username"
+                label="Username"
+                placeholder="Enter username"
+                required
+                form={formAction}
+                setForm={(e: any) => setFormAction(e)}
+              />
+              <InputForm
+                type="password"
+                name="password"
+                label="Password"
+                placeholder="Enter password"
+                form={formAction}
+                setForm={(e: any) => setFormAction(e)}
+              />
+              {formAction?.password && (
+                <InputForm
+                  type="password"
+                  name="retype_password"
+                  label="Retype Password"
+                  placeholder="Retype password"
+                  required
+                  form={formAction}
+                  setForm={(e: any) => setFormAction(e)}
+                />
+              )}
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShow("NONE")}
+                  className="flex-1 px-4 py-2 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleUpdateUser()}
+                  disabled={updatePending}
+                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+                >
+                  {updatePending ? "Loading..." : "Update User"}
                 </button>
               </div>
             </Form>

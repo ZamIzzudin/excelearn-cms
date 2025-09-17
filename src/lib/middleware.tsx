@@ -16,9 +16,7 @@ import {
   GlobalActions,
   GlobalProviderProps,
   Actions,
-  User,
-  AuthTokens,
-} from "src/interface/type";
+} from "@/interface/type";
 import { LocalToken, LocalRefreshToken } from "./var";
 import { cookies } from "@/lib/utils";
 import AxiosClient from "./axios";
@@ -27,7 +25,6 @@ const initialState: GlobalState = {
   hasLogin: false,
   user: null,
   token: undefined,
-  refreshToken: undefined,
   isLoading: true,
 };
 
@@ -41,14 +38,12 @@ function globalReducer(state: GlobalState, action: Actions): GlobalState {
         hasLogin: !!action.payload.user,
         user: action.payload.user,
         token: action.payload.tokens?.access_token || state.token,
-        refreshToken: action.payload.tokens?.refresh_token || state.refreshToken,
         isLoading: false,
       };
-    case "SET_TOKENS":
+    case "SET_TOKEN":
       return {
         ...state,
-        token: action.payload.access_token,
-        refreshToken: action.payload.refresh_token || state.refreshToken,
+        token: action.payload,
       };
     case "SET_LOADING":
       return {
@@ -70,17 +65,17 @@ export async function Middleware({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(globalReducer, initialState);
 
   const actions: GlobalActions = {
-    setAuth: (user: User | null, tokens?: AuthTokens) => {
-      dispatch({ type: "SET_AUTH", payload: { user, tokens } });
-      
-      if (tokens) {
-        AxiosClient.setTokens(tokens);
+    setAuth: (user: any | null, token: string) => {
+      dispatch({ type: "SET_AUTH", payload: { user, token } });
+
+      if (token) {
+        AxiosClient.setTokens(token);
       }
     },
 
-    setTokens: (tokens: AuthTokens) => {
-      dispatch({ type: "SET_TOKENS", payload: tokens });
-      AxiosClient.setTokens(tokens);
+    setToken: (token: string) => {
+      dispatch({ type: "SET_TOKEN", payload: token });
+      AxiosClient.setTokens(token);
     },
 
     setLoading: (loading: boolean) => {
@@ -90,7 +85,7 @@ export async function Middleware({ children }: { children: ReactNode }) {
     logout: () => {
       dispatch({ type: "LOGOUT" });
       AxiosClient.clearTokens();
-      
+
       if (typeof window !== "undefined") {
         localStorage.removeItem(LocalToken);
         localStorage.removeItem(LocalRefreshToken);
@@ -103,20 +98,21 @@ export async function Middleware({ children }: { children: ReactNode }) {
     checkAuth: async (): Promise<boolean> => {
       try {
         actions.setLoading(true);
-        
+
         if (!AxiosClient.isAuthenticated()) {
           actions.setLoading(false);
           return false;
         }
 
-        // Verify token with backend
-        const response = await AxiosClient.get("/auth/me");
-        
-        if (response.status === 200 && response.data.user) {
-          actions.setAuth(response.data.user);
+        const { data } = await AxiosClient.get("/auth/me");
+
+        const { status, message, ...user } = data;
+
+        if (status === 200 && user) {
+          actions.setAuth(user, user.access_token);
           return true;
         }
-        
+
         actions.logout();
         return false;
       } catch (error) {
@@ -131,7 +127,7 @@ export async function Middleware({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    
+
     // Check authentication on app load
     actions.checkAuth();
   }, []);

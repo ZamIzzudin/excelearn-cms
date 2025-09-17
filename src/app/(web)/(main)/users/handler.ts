@@ -1,6 +1,6 @@
 /** @format */
 
-"use server";
+"use client";
 
 import AxiosClient from "src/lib/axios";
 
@@ -18,7 +18,8 @@ export async function UserListService() {
       data,
     };
   } catch (error: any) {
-    return error.response.data;
+    console.log(error);
+    return error.message;
   }
 }
 
@@ -50,20 +51,20 @@ export async function RegisterService(payload: {
 }
 
 export async function UpdateService(payload: {
+  _id: string;
   username: string;
   password: string;
   display_name: string;
 }) {
   try {
-    const { data: response } = await AxiosClient.post(
-      "/auth/register",
+    const { data: response } = await AxiosClient.put(
+      `/auth/adjust/${payload._id}`,
       payload
     );
 
     const { status, message, data } = response;
-    console.log(response);
 
-    if (status !== 201) throw new Error(message);
+    if (status !== 200) throw new Error(message);
 
     return {
       status,

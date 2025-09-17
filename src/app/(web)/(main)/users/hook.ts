@@ -1,7 +1,12 @@
 /** @format */
 import { useMutation, useQuery, UseQueryResult } from "@tanstack/react-query";
 
-import { DeleteService, RegisterService, UserListService } from "./handler";
+import {
+  DeleteService,
+  RegisterService,
+  UserListService,
+  UpdateService,
+} from "./handler";
 
 export const useUser = (): UseQueryResult<any> => {
   const queryResult = useQuery({
@@ -38,6 +43,30 @@ export const useRegister = () => {
 
         return {
           data: response.data,
+        };
+      } catch (error: any) {
+        throw new Error(error.message || "Success to Register User");
+      }
+    },
+  });
+};
+
+export const useUpdate = () => {
+  return useMutation({
+    mutationKey: ["update_user"],
+    mutationFn: async (payload: {
+      _id: string;
+      username: string;
+      password: string;
+      display_name: string;
+    }) => {
+      try {
+        const response: any = await UpdateService(payload);
+
+        if (response.status !== 200) throw new Error(response.message);
+
+        return {
+          data: response.message,
         };
       } catch (error: any) {
         throw new Error(error.message || "Success to Register User");

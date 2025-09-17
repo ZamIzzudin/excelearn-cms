@@ -1,35 +1,31 @@
 /** @format */
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
 import { useGlobalState } from "src/lib/middleware";
 import { useLogout } from "src/hooks/useAuth";
-import { useState } from "react";
 
-import {
-  Home,
-  Users,
-  Settings,
-  LogOut,
-  Menu,
-  X,
-  BarChart3,
-  MoveLeft,
-} from "lucide-react";
+import { MenuItem } from "@/interface/type";
+import { DefaultMenu, SuperMenu } from "@/lib/var";
 
-const menuItems = [
-  { id: 1, text: "Dashboard", icon: Home, href: "/" },
-  { id: 2, text: "Users", icon: Users, href: "/users" },
-  { id: 3, text: "Reports", icon: BarChart3, href: "/reports" },
-  { id: 7, text: "Settings", icon: Settings, href: "/settings" },
-];
+import { LogOut, Menu, X, MoveLeft } from "lucide-react";
 
 export default function Sidebar() {
-  const { state, actions } = useGlobalState();
+  const { state } = useGlobalState();
   const pathname = usePathname();
   const { mutate: logout, isPending: logoutPending } = useLogout();
+
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [menuList, setMenuList] = useState<MenuItem[]>(DefaultMenu);
+
+  useEffect(() => {
+    if (state.user && state.user.role === "SUPERADMIN") {
+      setMenuList(SuperMenu);
+    }
+  }, [state]);
 
   return (
     <>
@@ -87,7 +83,7 @@ export default function Sidebar() {
 
         {/* Navigation */}
         <nav className="p-4 space-y-2">
-          {menuItems.map((item) => {
+          {menuList.map((item: MenuItem) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
 
