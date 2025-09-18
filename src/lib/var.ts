@@ -1,7 +1,7 @@
 /** @format */
 import { Home, BarChart3, Settings, Users } from "lucide-react";
 
-export const ValidPath = ["", "users", "reports", "settings"];
+export const ValidPath = ["", "users", "reports", "settings", "pages"];
 export const DefaultMenu = [
   { id: 1, text: "Dashboard", icon: Home, href: "/" },
   { id: 2, text: "Reports", icon: BarChart3, href: "/reports" },
