@@ -1,5 +1,5 @@
 /** @format */
-import { Home, BarChart3, Settings, Users } from "lucide-react";
+import { Home, BarChart3, Settings, Users, Layers } from "lucide-react";
 
 export const ValidPath = ["", "users", "reports", "settings", "pages"];
 export const DefaultMenu = [
@@ -12,6 +12,7 @@ export const SuperMenu = [
   { id: 2, text: "Users", icon: Users, href: "/users" },
   { id: 3, text: "Reports", icon: BarChart3, href: "/reports" },
   { id: 4, text: "Settings", icon: Settings, href: "/settings" },
+  { id: 5, text: "Pages", icon: Layers, href: "/pages" },
 ];
 
 export const LocalToken = "exc_auth_token";
