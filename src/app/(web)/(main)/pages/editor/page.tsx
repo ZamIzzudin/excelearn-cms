@@ -218,37 +218,34 @@ export default function PageEditor() {
     }
   }, [searchParams]);
 
-  // Responsive grid calculation
+  // Improved responsive grid calculation
   const getResponsiveColumns = (originalColumns: number) => {
     switch (viewMode) {
       case "mobile":
-        return originalColumns > 6 ? 12 : originalColumns * 2;
+        // Mobile: komponen dengan lebar > 6 menjadi full width, sisanya tetap
+        return originalColumns > 6 ? 12 : originalColumns;
       case "tablet":
-        return originalColumns > 8 ? 12 : Math.ceil(originalColumns * 1.5);
+        // Tablet: komponen dengan lebar > 8 menjadi full width, sisanya disesuaikan
+        if (originalColumns > 8) return 12;
+        if (originalColumns <= 4) return originalColumns;
+        return Math.min(originalColumns + 2, 12);
       default:
         return originalColumns;
     }
   };
 
   const getGridClass = () => {
-    switch (viewMode) {
-      case "mobile":
-        return "grid-cols-12";
-      case "tablet":
-        return "grid-cols-12";
-      default:
-        return "grid-cols-12";
-    }
+    return "grid-cols-12"; // Always use 12-column grid
   };
 
   const getViewportClass = () => {
     switch (viewMode) {
       case "mobile":
-        return "max-w-sm";
+        return "max-w-sm mx-auto";
       case "tablet":
-        return "max-w-2xl";
+        return "max-w-2xl mx-auto";
       default:
-        return "max-w-full";
+        return "max-w-6xl mx-auto";
     }
   };
 
@@ -399,7 +396,20 @@ export default function PageEditor() {
       case "image":
         return <img src={props.src} alt={props.alt} style={style} />;
       case "button":
-        return <button style={style}>{props.text}</button>;
+        return (
+          <div style={{ textAlign: props.textAlign, padding: 0 }}>
+            <button 
+              style={{
+                ...style,
+                display: 'inline-block',
+                textAlign: 'center',
+                padding: props.padding,
+              }}
+            >
+              {props.text}
+            </button>
+          </div>
+        );
       case "container":
         return <div style={style}></div>;
       case "list":
@@ -641,7 +651,7 @@ export default function PageEditor() {
             {/* Grid Column */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                Grid Columns (1-12)
+                Width ({selectedComponentData.gridColumn}/12 columns)
               </label>
               <input
                 type="range"
@@ -656,8 +666,31 @@ export default function PageEditor() {
                 }
                 className="w-full accent-indigo-600"
               />
-              <div className="text-sm text-slate-500 mt-1">
-                {selectedComponentData.gridColumn}/12 columns
+              <div className="flex justify-between text-xs text-slate-500 mt-1">
+                <span>1 col</span>
+                <span className="font-medium">
+                  {Math.round((selectedComponentData.gridColumn / 12) * 100)}% width
+                </span>
+                <span>12 col</span>
+              </div>
+              
+              {/* Responsive preview */}
+              <div className="mt-3 p-3 bg-slate-50 rounded-lg">
+                <div className="text-xs font-medium text-slate-600 mb-2">Preview on devices:</div>
+                <div className="space-y-1 text-xs text-slate-500">
+                  <div className="flex justify-between">
+                    <span>Desktop:</span>
+                    <span>{Math.round((selectedComponentData.gridColumn / 12) * 100)}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Tablet:</span>
+                    <span>{Math.round((getResponsiveColumns(selectedComponentData.gridColumn) / 12) * 100)}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Mobile:</span>
+                    <span>{Math.round((getResponsiveColumns(selectedComponentData.gridColumn) / 12) * 100)}%</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -667,7 +700,7 @@ export default function PageEditor() {
               selectedComponentData.type === "button") && (
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Text Alignment
+                  Alignment
                 </label>
                 <div className="flex gap-2">
                   {[
@@ -763,6 +796,8 @@ export default function PageEditor() {
                   </label>
                   <input
                     type="number"
+                    min="8"
+                    max="72"
                     value={selectedComponentData.props.fontSize}
                     onChange={(e) =>
                       updateComponentProps(selectedComponentData.id, {
@@ -831,6 +866,8 @@ export default function PageEditor() {
                   </label>
                   <input
                     type="number"
+                    min="0"
+                    max="50"
                     value={selectedComponentData.props.borderRadius}
                     onChange={(e) =>
                       updateComponentProps(selectedComponentData.id, {
@@ -855,6 +892,42 @@ export default function PageEditor() {
                     onChange={(e) =>
                       updateComponentProps(selectedComponentData.id, {
                         text: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Font Size
+                  </label>
+                  <input
+                    type="number"
+                    min="8"
+                    max="32"
+                    value={selectedComponentData.props.fontSize}
+                    onChange={(e) =>
+                      updateComponentProps(selectedComponentData.id, {
+                        fontSize: parseInt(e.target.value),
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Border Radius
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="50"
+                    value={selectedComponentData.props.borderRadius}
+                    onChange={(e) =>
+                      updateComponentProps(selectedComponentData.id, {
+                        borderRadius: parseInt(e.target.value),
                       })
                     }
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -920,6 +993,8 @@ export default function PageEditor() {
               </label>
               <input
                 type="number"
+                min="0"
+                max="100"
                 value={selectedComponentData.props.padding}
                 onChange={(e) =>
                   updateComponentProps(selectedComponentData.id, {
@@ -928,6 +1003,9 @@ export default function PageEditor() {
                 }
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
+              <div className="text-xs text-slate-500 mt-1">
+                Spacing around content (px)
+              </div>
             </div>
 
             {/* Uploaded Images Gallery */}
