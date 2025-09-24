@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Save,
@@ -16,6 +16,11 @@ import {
   Layout,
   List,
   X,
+  Upload,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  GripVertical,
 } from "lucide-react";
 
 // Komponen yang tersedia untuk drag & drop
@@ -33,6 +38,7 @@ const availableComponents = [
       backgroundColor: "transparent",
       padding: 16,
       textAlign: "left",
+      backgroundImage: null,
     },
   },
   {
@@ -49,6 +55,7 @@ const availableComponents = [
       backgroundColor: "transparent",
       padding: 16,
       textAlign: "left",
+      backgroundImage: null,
     },
   },
   {
@@ -63,6 +70,7 @@ const availableComponents = [
       height: "auto",
       borderRadius: 0,
       objectFit: "cover",
+      backgroundImage: null,
     },
   },
   {
@@ -80,6 +88,8 @@ const availableComponents = [
       fontWeight: "medium",
       border: "none",
       cursor: "pointer",
+      textAlign: "center",
+      backgroundImage: null,
     },
   },
   {
@@ -93,6 +103,8 @@ const availableComponents = [
       fontSize: 16,
       color: "#000000",
       padding: 16,
+      textAlign: "left",
+      backgroundImage: null,
     },
   },
 ];
@@ -117,6 +129,7 @@ const dummyPageData = {
         backgroundColor: "transparent",
         padding: 32,
         textAlign: "center",
+        backgroundImage: null,
       },
     },
     {
@@ -133,6 +146,7 @@ const dummyPageData = {
         backgroundColor: "transparent",
         padding: 24,
         textAlign: "center",
+        backgroundImage: null,
       },
     },
     {
@@ -147,6 +161,7 @@ const dummyPageData = {
         height: "300px",
         borderRadius: 12,
         objectFit: "cover",
+        backgroundImage: null,
       },
     },
     {
@@ -164,22 +179,28 @@ const dummyPageData = {
         fontWeight: "semibold",
         border: "none",
         cursor: "pointer",
+        textAlign: "center",
+        backgroundImage: null,
       },
     },
   ],
+  uploadedImages: [], // Storage untuk gambar yang diupload
 };
 
 export default function PageEditor() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [pageData, setPageData] = useState(dummyPageData);
   const [selectedComponent, setSelectedComponent] = useState<string | null>(
     null
   );
   const [draggedComponent, setDraggedComponent] = useState<any>(null);
-  const [viewMode, setViewMode] = useState<1 | 2 | 3>(1);
+  const [draggedCanvasComponent, setDraggedCanvasComponent] = useState<any>(null);
+  const [viewMode, setViewMode] = useState<"desktop" | "tablet" | "mobile">("desktop");
   const [showComponentPanel, setShowComponentPanel] = useState(true);
+  const [showPropertiesPanel, setShowPropertiesPanel] = useState(false);
 
   useEffect(() => {
     const title = searchParams.get("title");
@@ -192,32 +213,97 @@ export default function PageEditor() {
         title,
         slug,
         components: [],
+        uploadedImages: [],
       });
     }
   }, [searchParams]);
+
+  // Responsive grid calculation
+  const getResponsiveColumns = (originalColumns: number) => {
+    switch (viewMode) {
+      case "mobile":
+        return originalColumns > 6 ? 12 : originalColumns * 2;
+      case "tablet":
+        return originalColumns > 8 ? 12 : Math.ceil(originalColumns * 1.5);
+      default:
+        return originalColumns;
+    }
+  };
+
+  const getGridClass = () => {
+    switch (viewMode) {
+      case "mobile":
+        return "grid-cols-12";
+      case "tablet":
+        return "grid-cols-12";
+      default:
+        return "grid-cols-12";
+    }
+  };
+
+  const getViewportClass = () => {
+    switch (viewMode) {
+      case "mobile":
+        return "max-w-sm";
+      case "tablet":
+        return "max-w-2xl";
+      default:
+        return "max-w-full";
+    }
+  };
 
   const handleDragStart = (component: any) => {
     setDraggedComponent(component);
   };
 
+  const handleCanvasDragStart = (e: React.DragEvent, component: any) => {
+    setDraggedCanvasComponent(component);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    if (!draggedComponent) return;
+    
+    if (draggedComponent) {
+      // Adding new component from library
+      const newComponent = {
+        id: `comp-${Date.now()}`,
+        type: draggedComponent.id,
+        gridColumn: 12,
+        order: pageData.components.length + 1,
+        props: { ...draggedComponent.defaultProps },
+      };
 
-    const newComponent = {
-      id: `comp-${Date.now()}`,
-      type: draggedComponent.id,
-      gridColumn: 12,
-      order: pageData.components.length + 1,
-      props: { ...draggedComponent.defaultProps },
-    };
+      setPageData((prev) => ({
+        ...prev,
+        components: [...prev.components, newComponent],
+      }));
+      setDraggedComponent(null);
+    }
+  };
 
-    setPageData((prev) => ({
-      ...prev,
-      components: [...prev.components, newComponent],
-    }));
-
-    setDraggedComponent(null);
+  const handleCanvasDrop = (e: React.DragEvent, targetComponent: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (draggedCanvasComponent && draggedCanvasComponent.id !== targetComponent.id) {
+      const draggedOrder = draggedCanvasComponent.order;
+      const targetOrder = targetComponent.order;
+      
+      setPageData((prev) => ({
+        ...prev,
+        components: prev.components.map((comp) => {
+          if (comp.id === draggedCanvasComponent.id) {
+            return { ...comp, order: targetOrder };
+          }
+          if (comp.id === targetComponent.id) {
+            return { ...comp, order: draggedOrder };
+          }
+          return comp;
+        }),
+      }));
+    }
+    setDraggedCanvasComponent(null);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -252,13 +338,47 @@ export default function PageEditor() {
     setSelectedComponent(null);
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const imageData = {
+          id: `img-${Date.now()}`,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          data: event.target?.result as string,
+          file: file, // Store original file for later upload
+        };
+
+        setPageData((prev) => ({
+          ...prev,
+          uploadedImages: [...prev.uploadedImages, imageData],
+        }));
+
+        // If we're editing a component, set this as background
+        if (selectedComponent) {
+          updateComponentProps(selectedComponent, {
+            backgroundImage: imageData.data,
+          });
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const renderComponent = (component: any) => {
     const { type, props } = component;
     const style = {
       fontSize: props.fontSize,
       fontWeight: props.fontWeight,
       color: props.color,
-      backgroundColor: props.backgroundColor,
+      backgroundColor: props.backgroundImage ? 'transparent' : props.backgroundColor,
+      backgroundImage: props.backgroundImage ? `url(${props.backgroundImage})` : 'none',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
       padding: props.padding,
       textAlign: props.textAlign,
       borderRadius: props.borderRadius,
@@ -295,17 +415,6 @@ export default function PageEditor() {
     }
   };
 
-  const getViewportClass = () => {
-    switch (viewMode) {
-      case 3:
-        return "max-w-sm";
-      case 2:
-        return "max-w-2xl";
-      default:
-        return "max-w-full";
-    }
-  };
-
   const savePageData = () => {
     console.log("Saving page data:", JSON.stringify(pageData, null, 2));
     // Implement save logic
@@ -316,12 +425,18 @@ export default function PageEditor() {
     : null;
 
   return (
-    <div className="h-screen flex bg-slate-50 relative">
+    <div className="h-screen flex bg-slate-50 relative overflow-hidden">
       {/* Component Library Panel */}
       {showComponentPanel && (
-        <div className="w-80 bg-white border-r border-slate-200 flex flex-col">
-          <div className="p-4 border-b border-slate-200">
+        <div className="w-64 lg:w-80 bg-white border-r border-slate-200 flex flex-col flex-shrink-0">
+          <div className="p-4 border-b border-slate-200 flex justify-between items-center">
             <h2 className="font-semibold text-slate-800">Components</h2>
+            <button
+              onClick={() => setShowComponentPanel(false)}
+              className="lg:hidden p-1 hover:bg-slate-100 rounded"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
 
           <div className="flex-1 overflow-y-auto p-4">
@@ -330,7 +445,7 @@ export default function PageEditor() {
                 <h3 className="text-sm font-medium text-slate-600 mb-3">
                   {category}
                 </h3>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                   {availableComponents
                     .filter((comp) => comp.category === category)
                     .map((component) => {
@@ -340,7 +455,7 @@ export default function PageEditor() {
                           key={component.id}
                           draggable
                           onDragStart={() => handleDragStart(component)}
-                          className="p-3 border border-slate-200 rounded-lg cursor-grab hover:bg-slate-50 transition-colors"
+                          className="p-3 border border-slate-200 rounded-lg cursor-grab hover:bg-slate-50 transition-colors active:cursor-grabbing"
                         >
                           <Icon className="w-5 h-5 text-slate-600 mb-2" />
                           <p className="text-xs font-medium text-slate-700">
@@ -357,60 +472,84 @@ export default function PageEditor() {
       )}
 
       {/* Main Editor */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Toolbar */}
-        <div className="bg-white border-b border-slate-200 p-4">
+        <div className="bg-white border-b border-slate-200 p-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
+              {!showComponentPanel && (
+                <button
+                  onClick={() => setShowComponentPanel(true)}
+                  className="lg:hidden p-2 bg-slate-100 rounded-lg"
+                >
+                  <Layout className="w-4 h-4" />
+                </button>
+              )}
               <button
                 onClick={() => router.back()}
-                className="hidden text-sm lg:block p-2 bg-white border border-slate-200 rounded-lg shadow-sm transition-all duration-300"
+                className="p-2 bg-white border border-slate-200 rounded-lg shadow-sm transition-all duration-300 hover:bg-slate-50"
               >
-                <MoveLeft size={10} className="w-4 h-4 text-slate-600" />
+                <MoveLeft className="w-4 h-4 text-slate-600" />
               </button>
               <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
                 <button
-                  onClick={() => setViewMode(1)}
-                  className={`p-2 rounded ${
-                    viewMode === 1 ? "bg-white shadow-sm" : ""
+                  onClick={() => setViewMode("desktop")}
+                  className={`p-2 rounded transition-all ${
+                    viewMode === "desktop" ? "bg-white shadow-sm" : "hover:bg-slate-200"
                   }`}
+                  title="Desktop View"
                 >
                   <Monitor className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => setViewMode(2)}
-                  className={`p-2 rounded ${
-                    viewMode === 2 ? "bg-white shadow-sm" : ""
+                  onClick={() => setViewMode("tablet")}
+                  className={`p-2 rounded transition-all ${
+                    viewMode === "tablet" ? "bg-white shadow-sm" : "hover:bg-slate-200"
                   }`}
+                  title="Tablet View"
                 >
                   <Tablet className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => setViewMode(3)}
-                  className={`p-2 rounded ${
-                    viewMode === 3 ? "bg-white shadow-sm" : ""
+                  onClick={() => setViewMode("mobile")}
+                  className={`p-2 rounded transition-all ${
+                    viewMode === "mobile" ? "bg-white shadow-sm" : "hover:bg-slate-200"
                   }`}
+                  title="Mobile View"
                 >
                   <Smartphone className="w-4 h-4" />
                 </button>
               </div>
             </div>
-            <h1 className="font-semibold text-slate-800">{pageData.title}</h1>
+            
+            <h1 className="font-semibold text-slate-800 hidden md:block truncate max-w-xs">
+              {pageData.title}
+            </h1>
 
-            <button
-              onClick={savePageData}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-            >
-              <Save className="w-4 h-4" />
-              Save
-            </button>
+            <div className="flex items-center gap-2">
+              {selectedComponent && !showPropertiesPanel && (
+                <button
+                  onClick={() => setShowPropertiesPanel(true)}
+                  className="lg:hidden p-2 bg-slate-100 rounded-lg"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+              <button
+                onClick={savePageData}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                <Save className="w-4 h-4" />
+                <span className="hidden sm:inline">Save</span>
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Canvas */}
-        <div className="flex-1 overflow-auto p-8">
+        <div className="flex-1 overflow-auto p-4 lg:p-8">
           <div
-            className={`mx-auto bg-white rounded-lg shadow-sm min-h-96 ${getViewportClass()}`}
+            className={`mx-auto bg-white rounded-lg shadow-sm min-h-96 transition-all duration-300 ${getViewportClass()}`}
           >
             <div
               className="p-6"
@@ -423,48 +562,58 @@ export default function PageEditor() {
                   <p>Drag components here to start building your page</p>
                 </div>
               ) : (
-                <div
-                  // Tailwind safelist: grid-cols-12 grid-cols-6 grid-cols-3
-
-                  className={`grid grid-cols-${12 / viewMode} gap-4`}
-                >
+                <div className={`grid ${getGridClass()} gap-4`}>
                   {pageData.components
                     .sort((a, b) => a.order - b.order)
-                    .map((component) => (
-                      <div
-                        key={component.id}
-                        // Tailwind safelist: col-span-1 col-span-2 col-span-3 col-span-4 col-span-5 col-span-6 col-span-7 col-span-8 col-span-9 col-span-10 col-span-11 col-span-12
-                        className={`col-span-${Math.floor(
-                          component.gridColumn / viewMode
-                        )} relative group cursor-pointer`}
-                        onClick={() => setSelectedComponent(component.id)}
-                      >
+                    .map((component) => {
+                      const responsiveColumns = getResponsiveColumns(component.gridColumn);
+                      return (
                         <div
-                          className={`${
-                            selectedComponent === component.id
-                              ? "ring-2 ring-indigo-500"
-                              : ""
-                          } rounded-lg`}
+                          key={component.id}
+                          draggable
+                          onDragStart={(e) => handleCanvasDragStart(e, component)}
+                          onDrop={(e) => handleCanvasDrop(e, component)}
+                          onDragOver={handleDragOver}
+                          className={`col-span-${responsiveColumns} relative group cursor-pointer transition-all duration-200 hover:scale-[1.02]`}
+                          onClick={() => {
+                            setSelectedComponent(component.id);
+                            setShowPropertiesPanel(true);
+                          }}
                         >
-                          {renderComponent(component)}
-                        </div>
-
-                        {selectedComponent === component.id && (
-                          <div className="absolute -top-8 left-0 flex items-center gap-2 bg-indigo-600 text-white px-2 py-1 rounded text-xs">
-                            <span className="capitalize">{component.type}</span>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                deleteComponent(component.id);
-                              }}
-                              className="hover:bg-indigo-700 rounded px-1"
-                            >
-                              ×
-                            </button>
+                          <div
+                            className={`relative ${
+                              selectedComponent === component.id
+                                ? "ring-2 ring-indigo-500 ring-offset-2"
+                                : ""
+                            } rounded-lg transition-all`}
+                          >
+                            {renderComponent(component)}
+                            
+                            {/* Drag Handle */}
+                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="bg-slate-800 text-white p-1 rounded cursor-grab active:cursor-grabbing">
+                                <GripVertical className="w-3 h-3" />
+                              </div>
+                            </div>
                           </div>
-                        )}
-                      </div>
-                    ))}
+
+                          {selectedComponent === component.id && (
+                            <div className="absolute -top-8 left-0 flex items-center gap-2 bg-indigo-600 text-white px-2 py-1 rounded text-xs z-10">
+                              <span className="capitalize">{component.type}</span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteComponent(component.id);
+                                }}
+                                className="hover:bg-indigo-700 rounded px-1 transition-colors"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                 </div>
               )}
             </div>
@@ -473,19 +622,22 @@ export default function PageEditor() {
       </div>
 
       {/* Properties Panel */}
-      {selectedComponentData && (
-        <div className="w-80 h-full bg-white border-l border-slate-200 flex flex-col">
+      {selectedComponentData && (showPropertiesPanel || window.innerWidth >= 1024) && (
+        <div className="w-80 bg-white border-l border-slate-200 flex flex-col flex-shrink-0 lg:relative absolute right-0 top-0 h-full z-20">
           <div className="p-4 border-b border-slate-200 flex justify-between items-center">
             <h2 className="font-semibold text-slate-800">Properties</h2>
             <button
-              onClick={() => setSelectedComponent(null)}
-              className="hidden text-sm lg:block p-2 bg-white border border-slate-200 rounded-lg shadow-sm transition-all duration-300"
+              onClick={() => {
+                setSelectedComponent(null);
+                setShowPropertiesPanel(false);
+              }}
+              className="p-2 bg-white border border-slate-200 rounded-lg shadow-sm transition-all duration-300 hover:bg-slate-50"
             >
-              <X size={10} className="w-4 h-4 text-slate-600" />
+              <X className="w-4 h-4 text-slate-600" />
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-4 space-y-6">
             {/* Grid Column */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -502,10 +654,86 @@ export default function PageEditor() {
                     parseInt(e.target.value)
                   )
                 }
-                className="w-full"
+                className="w-full accent-indigo-600"
               />
               <div className="text-sm text-slate-500 mt-1">
                 {selectedComponentData.gridColumn}/12 columns
+              </div>
+            </div>
+
+            {/* Text Alignment for text, heading, and button */}
+            {(selectedComponentData.type === "text" ||
+              selectedComponentData.type === "heading" ||
+              selectedComponentData.type === "button") && (
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Text Alignment
+                </label>
+                <div className="flex gap-2">
+                  {[
+                    { value: "left", icon: AlignLeft },
+                    { value: "center", icon: AlignCenter },
+                    { value: "right", icon: AlignRight },
+                  ].map(({ value, icon: Icon }) => (
+                    <button
+                      key={value}
+                      onClick={() =>
+                        updateComponentProps(selectedComponentData.id, {
+                          textAlign: value,
+                        })
+                      }
+                      className={`flex-1 p-2 border rounded-lg transition-colors ${
+                        selectedComponentData.props.textAlign === value
+                          ? "bg-indigo-50 border-indigo-200 text-indigo-600"
+                          : "border-slate-200 hover:bg-slate-50"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 mx-auto" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Background Image Upload */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Background Image
+              </label>
+              <div className="space-y-2">
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full p-3 border-2 border-dashed border-slate-200 rounded-lg hover:border-indigo-300 transition-colors flex items-center justify-center gap-2 text-slate-600 hover:text-indigo-600"
+                >
+                  <Upload className="w-4 h-4" />
+                  Upload Image
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                {selectedComponentData.props.backgroundImage && (
+                  <div className="relative">
+                    <img
+                      src={selectedComponentData.props.backgroundImage}
+                      alt="Background preview"
+                      className="w-full h-20 object-cover rounded-lg"
+                    />
+                    <button
+                      onClick={() =>
+                        updateComponentProps(selectedComponentData.id, {
+                          backgroundImage: null,
+                        })
+                      }
+                      className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -524,7 +752,7 @@ export default function PageEditor() {
                         content: e.target.value,
                       })
                     }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     rows={3}
                   />
                 </div>
@@ -541,7 +769,7 @@ export default function PageEditor() {
                         fontSize: parseInt(e.target.value),
                       })
                     }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
 
@@ -557,7 +785,7 @@ export default function PageEditor() {
                         color: e.target.value,
                       })
                     }
-                    className="w-full h-10 border border-slate-200 rounded-lg"
+                    className="w-full h-10 border border-slate-200 rounded-lg cursor-pointer"
                   />
                 </div>
               </>
@@ -577,7 +805,7 @@ export default function PageEditor() {
                         src: e.target.value,
                       })
                     }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
 
@@ -593,7 +821,7 @@ export default function PageEditor() {
                         alt: e.target.value,
                       })
                     }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
 
@@ -609,7 +837,7 @@ export default function PageEditor() {
                         borderRadius: parseInt(e.target.value),
                       })
                     }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
               </>
@@ -629,7 +857,7 @@ export default function PageEditor() {
                         text: e.target.value,
                       })
                     }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
 
@@ -645,7 +873,7 @@ export default function PageEditor() {
                         backgroundColor: e.target.value,
                       })
                     }
-                    className="w-full h-10 border border-slate-200 rounded-lg"
+                    className="w-full h-10 border border-slate-200 rounded-lg cursor-pointer"
                   />
                 </div>
 
@@ -661,28 +889,30 @@ export default function PageEditor() {
                         color: e.target.value,
                       })
                     }
-                    className="w-full h-10 border border-slate-200 rounded-lg"
+                    className="w-full h-10 border border-slate-200 rounded-lg cursor-pointer"
                   />
                 </div>
               </>
             )}
 
             {/* Common properties */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Background Color
-              </label>
-              <input
-                type="color"
-                value={selectedComponentData.props.backgroundColor || "#ffffff"}
-                onChange={(e) =>
-                  updateComponentProps(selectedComponentData.id, {
-                    backgroundColor: e.target.value,
-                  })
-                }
-                className="w-full h-10 border border-slate-200 rounded-lg"
-              />
-            </div>
+            {!selectedComponentData.props.backgroundImage && (
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Background Color
+                </label>
+                <input
+                  type="color"
+                  value={selectedComponentData.props.backgroundColor || "#ffffff"}
+                  onChange={(e) =>
+                    updateComponentProps(selectedComponentData.id, {
+                      backgroundColor: e.target.value,
+                    })
+                  }
+                  className="w-full h-10 border border-slate-200 rounded-lg cursor-pointer"
+                />
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -696,14 +926,49 @@ export default function PageEditor() {
                     padding: parseInt(e.target.value),
                   })
                 }
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
+
+            {/* Uploaded Images Gallery */}
+            {pageData.uploadedImages.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Uploaded Images
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {pageData.uploadedImages.map((image) => (
+                    <div key={image.id} className="relative group">
+                      <img
+                        src={image.data}
+                        alt={image.name}
+                        className="w-full h-16 object-cover rounded-lg cursor-pointer hover:opacity-75 transition-opacity"
+                        onClick={() =>
+                          updateComponentProps(selectedComponentData.id, {
+                            backgroundImage: image.data,
+                          })
+                        }
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
+                        <span className="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                          Use
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
-        // <div className="flex absolute top-0 left-0 right-0 bottom-0 bg-[#00000030] justify-end">
+      )}
 
-        // </div>
+      {/* Mobile overlay for properties panel */}
+      {showPropertiesPanel && window.innerWidth < 1024 && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-10 lg:hidden"
+          onClick={() => setShowPropertiesPanel(false)}
+        />
       )}
     </div>
   );
