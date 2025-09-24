@@ -316,7 +316,7 @@ export default function PageEditor() {
     : null;
 
   return (
-    <div className="h-screen flex bg-slate-50">
+    <div className="h-screen flex bg-slate-50 relative">
       {/* Component Library Panel */}
       {showComponentPanel && (
         <div className="w-80 bg-white border-r border-slate-200 flex flex-col">
@@ -436,7 +436,7 @@ export default function PageEditor() {
                         // Tailwind safelist: col-span-1 col-span-2 col-span-3 col-span-4 col-span-5 col-span-6 col-span-7 col-span-8 col-span-9 col-span-10 col-span-11 col-span-12
                         className={`col-span-${Math.floor(
                           component.gridColumn / viewMode
-                        )} relative group cursor-pointer bg-red-200`}
+                        )} relative group cursor-pointer`}
                         onClick={() => setSelectedComponent(component.id)}
                       >
                         <div
@@ -474,7 +474,7 @@ export default function PageEditor() {
 
       {/* Properties Panel */}
       {selectedComponentData && (
-        <div className="w-80 bg-white border-l border-slate-200 flex flex-col">
+        <div className="w-80 h-full bg-white border-l border-slate-200 flex flex-col">
           <div className="p-4 border-b border-slate-200 flex justify-between items-center">
             <h2 className="font-semibold text-slate-800">Properties</h2>
             <button
@@ -701,6 +701,9 @@ export default function PageEditor() {
             </div>
           </div>
         </div>
+        // <div className="flex absolute top-0 left-0 right-0 bottom-0 bg-[#00000030] justify-end">
+
+        // </div>
       )}
     </div>
   );

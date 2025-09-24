@@ -4,6 +4,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { Login } from "./serviceAuth";
 import { useGlobalState } from "src/lib/middleware";
+import { useRouter } from "next/navigation";
 
 export const useLogin = () => {
   const { actions } = useGlobalState();
@@ -57,6 +58,7 @@ export const useProfile = () => {
 
 export const useLogout = () => {
   const { actions } = useGlobalState();
+  const router = useRouter();
 
   return useMutation({
     mutationKey: ["logout"],
@@ -64,6 +66,7 @@ export const useLogout = () => {
       try {
         // Optional: Call logout endpoint
         // await AxiosClient.post("/auth/logout");
+        router.refresh();
         return true;
       } catch (error) {
         // Even if logout fails on server, clear local state
