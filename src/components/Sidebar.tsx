@@ -39,7 +39,7 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <div
-        className={`sticky left-0 top-0 min-h-full bg-white border-r border-slate-200 z-50 transition-all duration-300 ${
+        className={`sticky left-0 top-0 h-[100dvh] bg-white border-r border-slate-200 z-50 transition-all duration-300 ${
           isCollapsed ? "-translate-x-full lg:translate-x-0 lg:w-20" : "w-64"
         }`}
       >

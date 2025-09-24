@@ -197,8 +197,11 @@ export default function PageEditor() {
     null
   );
   const [draggedComponent, setDraggedComponent] = useState<any>(null);
-  const [draggedCanvasComponent, setDraggedCanvasComponent] = useState<any>(null);
-  const [viewMode, setViewMode] = useState<"desktop" | "tablet" | "mobile">("desktop");
+  const [draggedCanvasComponent, setDraggedCanvasComponent] =
+    useState<any>(null);
+  const [viewMode, setViewMode] = useState<"desktop" | "tablet" | "mobile">(
+    "desktop"
+  );
   const [showComponentPanel, setShowComponentPanel] = useState(true);
   const [showPropertiesPanel, setShowPropertiesPanel] = useState(false);
 
@@ -260,7 +263,7 @@ export default function PageEditor() {
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    
+
     if (draggedComponent) {
       // Adding new component from library
       const newComponent = {
@@ -282,11 +285,14 @@ export default function PageEditor() {
   const handleCanvasDrop = (e: React.DragEvent, targetComponent: any) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    if (draggedCanvasComponent && draggedCanvasComponent.id !== targetComponent.id) {
+
+    if (
+      draggedCanvasComponent &&
+      draggedCanvasComponent.id !== targetComponent.id
+    ) {
       const draggedOrder = draggedCanvasComponent.order;
       const targetOrder = targetComponent.order;
-      
+
       setPageData((prev) => ({
         ...prev,
         components: prev.components.map((comp) => {
@@ -349,7 +355,7 @@ export default function PageEditor() {
           file: file, // Store original file for later upload
         };
 
-        setPageData((prev) => ({
+        setPageData((prev: any) => ({
           ...prev,
           uploadedImages: [...prev.uploadedImages, imageData],
         }));
@@ -371,11 +377,15 @@ export default function PageEditor() {
       fontSize: props.fontSize,
       fontWeight: props.fontWeight,
       color: props.color,
-      backgroundColor: props.backgroundImage ? 'transparent' : props.backgroundColor,
-      backgroundImage: props.backgroundImage ? `url(${props.backgroundImage})` : 'none',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
+      backgroundColor: props.backgroundImage
+        ? "transparent"
+        : props.backgroundColor,
+      backgroundImage: props.backgroundImage
+        ? `url(${props.backgroundImage})`
+        : "none",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat",
       padding: props.padding,
       textAlign: props.textAlign,
       borderRadius: props.borderRadius,
@@ -398,11 +408,11 @@ export default function PageEditor() {
       case "button":
         return (
           <div style={{ textAlign: props.textAlign, padding: 0 }}>
-            <button 
+            <button
               style={{
                 ...style,
-                display: 'inline-block',
-                textAlign: 'center',
+                display: "inline-block",
+                textAlign: "center",
                 padding: props.padding,
               }}
             >
@@ -505,7 +515,9 @@ export default function PageEditor() {
                 <button
                   onClick={() => setViewMode("desktop")}
                   className={`p-2 rounded transition-all ${
-                    viewMode === "desktop" ? "bg-white shadow-sm" : "hover:bg-slate-200"
+                    viewMode === "desktop"
+                      ? "bg-white shadow-sm"
+                      : "hover:bg-slate-200"
                   }`}
                   title="Desktop View"
                 >
@@ -514,7 +526,9 @@ export default function PageEditor() {
                 <button
                   onClick={() => setViewMode("tablet")}
                   className={`p-2 rounded transition-all ${
-                    viewMode === "tablet" ? "bg-white shadow-sm" : "hover:bg-slate-200"
+                    viewMode === "tablet"
+                      ? "bg-white shadow-sm"
+                      : "hover:bg-slate-200"
                   }`}
                   title="Tablet View"
                 >
@@ -523,7 +537,9 @@ export default function PageEditor() {
                 <button
                   onClick={() => setViewMode("mobile")}
                   className={`p-2 rounded transition-all ${
-                    viewMode === "mobile" ? "bg-white shadow-sm" : "hover:bg-slate-200"
+                    viewMode === "mobile"
+                      ? "bg-white shadow-sm"
+                      : "hover:bg-slate-200"
                   }`}
                   title="Mobile View"
                 >
@@ -531,7 +547,7 @@ export default function PageEditor() {
                 </button>
               </div>
             </div>
-            
+
             <h1 className="font-semibold text-slate-800 hidden md:block truncate max-w-xs">
               {pageData.title}
             </h1>
@@ -559,10 +575,10 @@ export default function PageEditor() {
         {/* Canvas */}
         <div className="flex-1 overflow-auto p-4 lg:p-8">
           <div
-            className={`mx-auto bg-white rounded-lg shadow-sm min-h-96 transition-all duration-300 ${getViewportClass()}`}
+            className={`mx-auto bg-white rounded-lg shadow-sm min-h-[90dvh] transition-all duration-300 ${getViewportClass()}`}
           >
             <div
-              className="p-6"
+              className="p-6 min-h-full"
               onDrop={handleDrop}
               onDragOver={handleDragOver}
             >
@@ -572,19 +588,25 @@ export default function PageEditor() {
                   <p>Drag components here to start building your page</p>
                 </div>
               ) : (
-                <div className={`grid ${getGridClass()} gap-4`}>
+                // <div className={`grid ${getGridClass()} gap-4`}>
+                <div className={`grid grid-cols-12 min-h-full`}>
                   {pageData.components
                     .sort((a, b) => a.order - b.order)
                     .map((component) => {
-                      const responsiveColumns = getResponsiveColumns(component.gridColumn);
+                      const responsiveColumns = getResponsiveColumns(
+                        component.gridColumn
+                      );
                       return (
                         <div
                           key={component.id}
                           draggable
-                          onDragStart={(e) => handleCanvasDragStart(e, component)}
+                          onDragStart={(e) =>
+                            handleCanvasDragStart(e, component)
+                          }
                           onDrop={(e) => handleCanvasDrop(e, component)}
                           onDragOver={handleDragOver}
-                          className={`col-span-${responsiveColumns} relative group cursor-pointer transition-all duration-200 hover:scale-[1.02]`}
+                          // Tailwind safelist: col-span-1 col-span-2 col-span-3 col-span-4 col-span-5 col-span-6 col-span-7 col-span-8 col-span-9 col-span-10 col-span-11 col-span-12
+                          className={`col-span-${responsiveColumns} relative group cursor-pointer transition-all duration-200 hover:scale-[1.02] w-full`}
                           onClick={() => {
                             setSelectedComponent(component.id);
                             setShowPropertiesPanel(true);
@@ -593,12 +615,12 @@ export default function PageEditor() {
                           <div
                             className={`relative ${
                               selectedComponent === component.id
-                                ? "ring-2 ring-indigo-500 ring-offset-2"
+                                ? "ring-2 ring-indigo-500 ring-offset-2 w-full"
                                 : ""
                             } rounded-lg transition-all`}
                           >
                             {renderComponent(component)}
-                            
+
                             {/* Drag Handle */}
                             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                               <div className="bg-slate-800 text-white p-1 rounded cursor-grab active:cursor-grabbing">
@@ -609,7 +631,9 @@ export default function PageEditor() {
 
                           {selectedComponent === component.id && (
                             <div className="absolute -top-8 left-0 flex items-center gap-2 bg-indigo-600 text-white px-2 py-1 rounded text-xs z-10">
-                              <span className="capitalize">{component.type}</span>
+                              <span className="capitalize">
+                                {component.type}
+                              </span>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -632,315 +656,380 @@ export default function PageEditor() {
       </div>
 
       {/* Properties Panel */}
-      {selectedComponentData && (showPropertiesPanel || window.innerWidth >= 1024) && (
-        <div className="w-80 bg-white border-l border-slate-200 flex flex-col flex-shrink-0 lg:relative absolute right-0 top-0 h-full z-20">
-          <div className="p-4 border-b border-slate-200 flex justify-between items-center">
-            <h2 className="font-semibold text-slate-800">Properties</h2>
-            <button
-              onClick={() => {
-                setSelectedComponent(null);
-                setShowPropertiesPanel(false);
-              }}
-              className="p-2 bg-white border border-slate-200 rounded-lg shadow-sm transition-all duration-300 hover:bg-slate-50"
-            >
-              <X className="w-4 h-4 text-slate-600" />
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-4 space-y-6">
-            {/* Grid Column */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Width ({selectedComponentData.gridColumn}/12 columns)
-              </label>
-              <input
-                type="range"
-                min="1"
-                max="12"
-                value={selectedComponentData.gridColumn}
-                onChange={(e) =>
-                  updateComponentGrid(
-                    selectedComponentData.id,
-                    parseInt(e.target.value)
-                  )
-                }
-                className="w-full accent-indigo-600"
-              />
-              <div className="flex justify-between text-xs text-slate-500 mt-1">
-                <span>1 col</span>
-                <span className="font-medium">
-                  {Math.round((selectedComponentData.gridColumn / 12) * 100)}% width
-                </span>
-                <span>12 col</span>
-              </div>
-              
-              {/* Responsive preview */}
-              <div className="mt-3 p-3 bg-slate-50 rounded-lg">
-                <div className="text-xs font-medium text-slate-600 mb-2">Preview on devices:</div>
-                <div className="space-y-1 text-xs text-slate-500">
-                  <div className="flex justify-between">
-                    <span>Desktop:</span>
-                    <span>{Math.round((selectedComponentData.gridColumn / 12) * 100)}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Tablet:</span>
-                    <span>{Math.round((getResponsiveColumns(selectedComponentData.gridColumn) / 12) * 100)}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Mobile:</span>
-                    <span>{Math.round((getResponsiveColumns(selectedComponentData.gridColumn) / 12) * 100)}%</span>
-                  </div>
-                </div>
-              </div>
+      {selectedComponentData &&
+        (showPropertiesPanel || window.innerWidth >= 1024) && (
+          <div className="w-80 bg-white border-l border-slate-200 flex flex-col flex-shrink-0 lg:relative absolute right-0 top-0 h-full z-20">
+            <div className="p-4 border-b border-slate-200 flex justify-between items-center">
+              <h2 className="font-semibold text-slate-800">Properties</h2>
+              <button
+                onClick={() => {
+                  setSelectedComponent(null);
+                  setShowPropertiesPanel(false);
+                }}
+                className="p-2 bg-white border border-slate-200 rounded-lg shadow-sm transition-all duration-300 hover:bg-slate-50"
+              >
+                <X className="w-4 h-4 text-slate-600" />
+              </button>
             </div>
 
-            {/* Text Alignment for text, heading, and button */}
-            {(selectedComponentData.type === "text" ||
-              selectedComponentData.type === "heading" ||
-              selectedComponentData.type === "button") && (
+            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+              {/* Grid Column */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Alignment
+                  Width ({selectedComponentData.gridColumn}/12 columns)
                 </label>
-                <div className="flex gap-2">
-                  {[
-                    { value: "left", icon: AlignLeft },
-                    { value: "center", icon: AlignCenter },
-                    { value: "right", icon: AlignRight },
-                  ].map(({ value, icon: Icon }) => (
-                    <button
-                      key={value}
-                      onClick={() =>
-                        updateComponentProps(selectedComponentData.id, {
-                          textAlign: value,
-                        })
-                      }
-                      className={`flex-1 p-2 border rounded-lg transition-colors ${
-                        selectedComponentData.props.textAlign === value
-                          ? "bg-indigo-50 border-indigo-200 text-indigo-600"
-                          : "border-slate-200 hover:bg-slate-50"
-                      }`}
-                    >
-                      <Icon className="w-4 h-4 mx-auto" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Background Image Upload */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Background Image
-              </label>
-              <div className="space-y-2">
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full p-3 border-2 border-dashed border-slate-200 rounded-lg hover:border-indigo-300 transition-colors flex items-center justify-center gap-2 text-slate-600 hover:text-indigo-600"
-                >
-                  <Upload className="w-4 h-4" />
-                  Upload Image
-                </button>
                 <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
+                  type="range"
+                  min="1"
+                  max="12"
+                  value={selectedComponentData.gridColumn}
+                  onChange={(e) =>
+                    updateComponentGrid(
+                      selectedComponentData.id,
+                      parseInt(e.target.value)
+                    )
+                  }
+                  className="w-full accent-indigo-600"
                 />
-                {selectedComponentData.props.backgroundImage && (
-                  <div className="relative">
-                    <img
-                      src={selectedComponentData.props.backgroundImage}
-                      alt="Background preview"
-                      className="w-full h-20 object-cover rounded-lg"
-                    />
-                    <button
-                      onClick={() =>
+                <div className="flex justify-between text-xs text-slate-500 mt-1">
+                  <span>1 col</span>
+                  <span className="font-medium">
+                    {Math.round((selectedComponentData.gridColumn / 12) * 100)}%
+                    width
+                  </span>
+                  <span>12 col</span>
+                </div>
+
+                {/* Responsive preview */}
+                <div className="mt-3 p-3 bg-slate-50 rounded-lg">
+                  <div className="text-xs font-medium text-slate-600 mb-2">
+                    Preview on devices:
+                  </div>
+                  <div className="space-y-1 text-xs text-slate-500">
+                    <div className="flex justify-between">
+                      <span>Desktop:</span>
+                      <span>
+                        {Math.round(
+                          (selectedComponentData.gridColumn / 12) * 100
+                        )}
+                        %
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Tablet:</span>
+                      <span>
+                        {Math.round(
+                          (getResponsiveColumns(
+                            selectedComponentData.gridColumn
+                          ) /
+                            12) *
+                            100
+                        )}
+                        %
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Mobile:</span>
+                      <span>
+                        {Math.round(
+                          (getResponsiveColumns(
+                            selectedComponentData.gridColumn
+                          ) /
+                            12) *
+                            100
+                        )}
+                        %
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Text Alignment for text, heading, and button */}
+              {(selectedComponentData.type === "text" ||
+                selectedComponentData.type === "heading" ||
+                selectedComponentData.type === "button") && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Alignment
+                  </label>
+                  <div className="flex gap-2">
+                    {[
+                      { value: "left", icon: AlignLeft },
+                      { value: "center", icon: AlignCenter },
+                      { value: "right", icon: AlignRight },
+                    ].map(({ value, icon: Icon }) => (
+                      <button
+                        key={value}
+                        onClick={() =>
+                          updateComponentProps(selectedComponentData.id, {
+                            textAlign: value,
+                          })
+                        }
+                        className={`flex-1 p-2 border rounded-lg transition-colors ${
+                          selectedComponentData.props.textAlign === value
+                            ? "bg-indigo-50 border-indigo-200 text-indigo-600"
+                            : "border-slate-200 hover:bg-slate-50"
+                        }`}
+                      >
+                        <Icon className="w-4 h-4 mx-auto" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Background Image Upload */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Background Image
+                </label>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full p-3 border-2 border-dashed border-slate-200 rounded-lg hover:border-indigo-300 transition-colors flex items-center justify-center gap-2 text-slate-600 hover:text-indigo-600"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Upload Image
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  {selectedComponentData.props.backgroundImage && (
+                    <div className="relative">
+                      <img
+                        src={selectedComponentData.props.backgroundImage}
+                        alt="Background preview"
+                        className="w-full h-20 object-cover rounded-lg"
+                      />
+                      <button
+                        onClick={() =>
+                          updateComponentProps(selectedComponentData.id, {
+                            backgroundImage: null,
+                          })
+                        }
+                        className="absolute top-1 right-1 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Component-specific properties */}
+              {(selectedComponentData.type === "text" ||
+                selectedComponentData.type === "heading") && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Content
+                    </label>
+                    <textarea
+                      value={selectedComponentData.props.content}
+                      onChange={(e) =>
                         updateComponentProps(selectedComponentData.id, {
-                          backgroundImage: null,
+                          content: e.target.value,
                         })
                       }
-                      className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      rows={3}
+                    />
                   </div>
-                )}
-              </div>
-            </div>
 
-            {/* Component-specific properties */}
-            {(selectedComponentData.type === "text" ||
-              selectedComponentData.type === "heading") && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Content
-                  </label>
-                  <textarea
-                    value={selectedComponentData.props.content}
-                    onChange={(e) =>
-                      updateComponentProps(selectedComponentData.id, {
-                        content: e.target.value,
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    rows={3}
-                  />
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Font Size
+                    </label>
+                    <input
+                      type="number"
+                      min="8"
+                      max="72"
+                      value={selectedComponentData.props.fontSize}
+                      onChange={(e) =>
+                        updateComponentProps(selectedComponentData.id, {
+                          fontSize: parseInt(e.target.value),
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Font Size
-                  </label>
-                  <input
-                    type="number"
-                    min="8"
-                    max="72"
-                    value={selectedComponentData.props.fontSize}
-                    onChange={(e) =>
-                      updateComponentProps(selectedComponentData.id, {
-                        fontSize: parseInt(e.target.value),
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Text Color
+                    </label>
+                    <input
+                      type="color"
+                      value={selectedComponentData.props.color}
+                      onChange={(e) =>
+                        updateComponentProps(selectedComponentData.id, {
+                          color: e.target.value,
+                        })
+                      }
+                      className="w-full h-10 border border-slate-200 rounded-lg cursor-pointer"
+                    />
+                  </div>
+                </>
+              )}
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Text Color
-                  </label>
-                  <input
-                    type="color"
-                    value={selectedComponentData.props.color}
-                    onChange={(e) =>
-                      updateComponentProps(selectedComponentData.id, {
-                        color: e.target.value,
-                      })
-                    }
-                    className="w-full h-10 border border-slate-200 rounded-lg cursor-pointer"
-                  />
-                </div>
-              </>
-            )}
+              {selectedComponentData.type === "image" && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Image URL
+                    </label>
+                    <input
+                      type="url"
+                      value={selectedComponentData.props.src}
+                      onChange={(e) =>
+                        updateComponentProps(selectedComponentData.id, {
+                          src: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
 
-            {selectedComponentData.type === "image" && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Image URL
-                  </label>
-                  <input
-                    type="url"
-                    value={selectedComponentData.props.src}
-                    onChange={(e) =>
-                      updateComponentProps(selectedComponentData.id, {
-                        src: e.target.value,
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Alt Text
+                    </label>
+                    <input
+                      type="text"
+                      value={selectedComponentData.props.alt}
+                      onChange={(e) =>
+                        updateComponentProps(selectedComponentData.id, {
+                          alt: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Alt Text
-                  </label>
-                  <input
-                    type="text"
-                    value={selectedComponentData.props.alt}
-                    onChange={(e) =>
-                      updateComponentProps(selectedComponentData.id, {
-                        alt: e.target.value,
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Border Radius
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="50"
+                      value={selectedComponentData.props.borderRadius}
+                      onChange={(e) =>
+                        updateComponentProps(selectedComponentData.id, {
+                          borderRadius: parseInt(e.target.value),
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
+                </>
+              )}
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Border Radius
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="50"
-                    value={selectedComponentData.props.borderRadius}
-                    onChange={(e) =>
-                      updateComponentProps(selectedComponentData.id, {
-                        borderRadius: parseInt(e.target.value),
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  />
-                </div>
-              </>
-            )}
+              {selectedComponentData.type === "button" && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Button Text
+                    </label>
+                    <input
+                      type="text"
+                      value={selectedComponentData.props.text}
+                      onChange={(e) =>
+                        updateComponentProps(selectedComponentData.id, {
+                          text: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
 
-            {selectedComponentData.type === "button" && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Button Text
-                  </label>
-                  <input
-                    type="text"
-                    value={selectedComponentData.props.text}
-                    onChange={(e) =>
-                      updateComponentProps(selectedComponentData.id, {
-                        text: e.target.value,
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Font Size
+                    </label>
+                    <input
+                      type="number"
+                      min="8"
+                      max="32"
+                      value={selectedComponentData.props.fontSize}
+                      onChange={(e) =>
+                        updateComponentProps(selectedComponentData.id, {
+                          fontSize: parseInt(e.target.value),
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Font Size
-                  </label>
-                  <input
-                    type="number"
-                    min="8"
-                    max="32"
-                    value={selectedComponentData.props.fontSize}
-                    onChange={(e) =>
-                      updateComponentProps(selectedComponentData.id, {
-                        fontSize: parseInt(e.target.value),
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Border Radius
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="50"
+                      value={selectedComponentData.props.borderRadius}
+                      onChange={(e) =>
+                        updateComponentProps(selectedComponentData.id, {
+                          borderRadius: parseInt(e.target.value),
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Border Radius
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="50"
-                    value={selectedComponentData.props.borderRadius}
-                    onChange={(e) =>
-                      updateComponentProps(selectedComponentData.id, {
-                        borderRadius: parseInt(e.target.value),
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Background Color
+                    </label>
+                    <input
+                      type="color"
+                      value={selectedComponentData.props.backgroundColor}
+                      onChange={(e) =>
+                        updateComponentProps(selectedComponentData.id, {
+                          backgroundColor: e.target.value,
+                        })
+                      }
+                      className="w-full h-10 border border-slate-200 rounded-lg cursor-pointer"
+                    />
+                  </div>
 
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Text Color
+                    </label>
+                    <input
+                      type="color"
+                      value={selectedComponentData.props.color}
+                      onChange={(e) =>
+                        updateComponentProps(selectedComponentData.id, {
+                          color: e.target.value,
+                        })
+                      }
+                      className="w-full h-10 border border-slate-200 rounded-lg cursor-pointer"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Common properties */}
+              {!selectedComponentData.props.backgroundImage && (
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Background Color
                   </label>
                   <input
                     type="color"
-                    value={selectedComponentData.props.backgroundColor}
+                    value={
+                      selectedComponentData.props.backgroundColor || "#ffffff"
+                    }
                     onChange={(e) =>
                       updateComponentProps(selectedComponentData.id, {
                         backgroundColor: e.target.value,
@@ -949,97 +1038,61 @@ export default function PageEditor() {
                     className="w-full h-10 border border-slate-200 rounded-lg cursor-pointer"
                   />
                 </div>
+              )}
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Text Color
-                  </label>
-                  <input
-                    type="color"
-                    value={selectedComponentData.props.color}
-                    onChange={(e) =>
-                      updateComponentProps(selectedComponentData.id, {
-                        color: e.target.value,
-                      })
-                    }
-                    className="w-full h-10 border border-slate-200 rounded-lg cursor-pointer"
-                  />
-                </div>
-              </>
-            )}
-
-            {/* Common properties */}
-            {!selectedComponentData.props.backgroundImage && (
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Background Color
+                  Padding
                 </label>
                 <input
-                  type="color"
-                  value={selectedComponentData.props.backgroundColor || "#ffffff"}
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={selectedComponentData.props.padding}
                   onChange={(e) =>
                     updateComponentProps(selectedComponentData.id, {
-                      backgroundColor: e.target.value,
+                      padding: parseInt(e.target.value),
                     })
                   }
-                  className="w-full h-10 border border-slate-200 rounded-lg cursor-pointer"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
-              </div>
-            )}
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Padding
-              </label>
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={selectedComponentData.props.padding}
-                onChange={(e) =>
-                  updateComponentProps(selectedComponentData.id, {
-                    padding: parseInt(e.target.value),
-                  })
-                }
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              />
-              <div className="text-xs text-slate-500 mt-1">
-                Spacing around content (px)
-              </div>
-            </div>
-
-            {/* Uploaded Images Gallery */}
-            {pageData.uploadedImages.length > 0 && (
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Uploaded Images
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {pageData.uploadedImages.map((image) => (
-                    <div key={image.id} className="relative group">
-                      <img
-                        src={image.data}
-                        alt={image.name}
-                        className="w-full h-16 object-cover rounded-lg cursor-pointer hover:opacity-75 transition-opacity"
-                        onClick={() =>
-                          updateComponentProps(selectedComponentData.id, {
-                            backgroundImage: image.data,
-                          })
-                        }
-                      />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
-                        <span className="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
-                          Use
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                <div className="text-xs text-slate-500 mt-1">
+                  Spacing around content (px)
                 </div>
               </div>
-            )}
+
+              {/* Uploaded Images Gallery */}
+              {pageData.uploadedImages.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Uploaded Images
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {pageData.uploadedImages.map((image: any) => (
+                      <div key={image.id} className="relative group">
+                        <img
+                          src={image.data}
+                          alt={image.name}
+                          className="w-full h-16 object-cover rounded-lg cursor-pointer hover:opacity-75 transition-opacity"
+                          onClick={() =>
+                            updateComponentProps(selectedComponentData.id, {
+                              backgroundImage: image.data,
+                            })
+                          }
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
+                          <span className="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                            Use
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Mobile overlay for properties panel */}
       {showPropertiesPanel && window.innerWidth < 1024 && (
