@@ -204,6 +204,17 @@ export default function PageEditor() {
   );
   const [showComponentPanel, setShowComponentPanel] = useState(true);
   const [showPropertiesPanel, setShowPropertiesPanel] = useState(false);
+  const [showMetadataPanel, setShowMetadataPanel] = useState(false);
+  const [metadata, setMetadata] = useState({
+    metaTitle: "",
+    metaDescription: "",
+    metaKeywords: "",
+    ogTitle: "",
+    ogDescription: "",
+    ogImage: "",
+    canonicalUrl: "",
+    robotsIndex: "index,follow",
+  });
 
   useEffect(() => {
     const title = searchParams.get("title");
@@ -568,6 +579,12 @@ export default function PageEditor() {
                 <Save className="w-4 h-4" />
                 <span className="hidden sm:inline">Save</span>
               </button>
+              <button
+                onClick={() => setShowMetadataPanel(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors"
+              >
+                <span className="hidden sm:inline">SEO</span>
+              </button>
             </div>
           </div>
         </div>
@@ -881,18 +898,66 @@ export default function PageEditor() {
                 <>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Image URL
+                      Image Source
                     </label>
-                    <input
-                      type="url"
-                      value={selectedComponentData.props.src}
-                      onChange={(e) =>
-                        updateComponentProps(selectedComponentData.id, {
-                          src: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    />
+                    <div className="space-y-3">
+                      {/* Uploaded Images Gallery */}
+                      {pageData.uploadedImages.length > 0 && (
+                        <div>
+                          <p className="text-xs text-slate-600 mb-2">Choose from uploaded images:</p>
+                          <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
+                            {pageData.uploadedImages.map((image: any) => (
+                              <div key={image.id} className="relative group">
+                                <img
+                                  src={image.data}
+                                  alt={image.name}
+                                  className={`w-full h-16 object-cover rounded-lg cursor-pointer transition-all ${
+                                    selectedComponentData.props.src === image.data
+                                      ? "ring-2 ring-indigo-500"
+                                      : "hover:opacity-75"
+                                  }`}
+                                  onClick={() =>
+                                    updateComponentProps(selectedComponentData.id, {
+                                      src: image.data,
+                                    })
+                                  }
+                                />
+                                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
+                                  <span className="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                                    {selectedComponentData.props.src === image.data ? "Selected" : "Use"}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Upload New Image */}
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-full p-3 border-2 border-dashed border-slate-200 rounded-lg hover:border-indigo-300 transition-colors flex items-center justify-center gap-2 text-slate-600 hover:text-indigo-600"
+                      >
+                        <Upload className="w-4 h-4" />
+                        Upload New Image
+                      </button>
+                      
+                      {/* Or use URL */}
+                      <div>
+                        <p className="text-xs text-slate-600 mb-2">Or enter image URL:</p>
+                        <input
+                          type="url"
+                          value={selectedComponentData.props.src}
+                          onChange={(e) =>
+                            updateComponentProps(selectedComponentData.id, {
+                              src: e.target.value,
+                            })
+                          }
+                          placeholder="https://example.com/image.jpg"
+                          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   <div>
@@ -1093,6 +1158,167 @@ export default function PageEditor() {
             </div>
           </div>
         )}
+
+      {/* SEO Metadata Panel */}
+      {showMetadataPanel && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-slate-800">SEO Metadata</h2>
+              <button
+                onClick={() => setShowMetadataPanel(false)}
+                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-slate-600" />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-800 mb-4">Basic SEO</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Meta Title
+                    </label>
+                    <input
+                      type="text"
+                      value={metadata.metaTitle}
+                      onChange={(e) => setMetadata(prev => ({ ...prev, metaTitle: e.target.value }))}
+                      placeholder="Enter page title for SEO (50-60 characters)"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">{metadata.metaTitle.length}/60 characters</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Meta Description
+                    </label>
+                    <textarea
+                      value={metadata.metaDescription}
+                      onChange={(e) => setMetadata(prev => ({ ...prev, metaDescription: e.target.value }))}
+                      placeholder="Enter page description for search engines (150-160 characters)"
+                      rows={3}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">{metadata.metaDescription.length}/160 characters</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Meta Keywords
+                    </label>
+                    <input
+                      type="text"
+                      value={metadata.metaKeywords}
+                      onChange={(e) => setMetadata(prev => ({ ...prev, metaKeywords: e.target.value }))}
+                      placeholder="Enter keywords separated by commas"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold text-slate-800 mb-4">Open Graph (Social Media)</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      OG Title
+                    </label>
+                    <input
+                      type="text"
+                      value={metadata.ogTitle}
+                      onChange={(e) => setMetadata(prev => ({ ...prev, ogTitle: e.target.value }))}
+                      placeholder="Title for social media sharing"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      OG Description
+                    </label>
+                    <textarea
+                      value={metadata.ogDescription}
+                      onChange={(e) => setMetadata(prev => ({ ...prev, ogDescription: e.target.value }))}
+                      placeholder="Description for social media sharing"
+                      rows={2}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      OG Image URL
+                    </label>
+                    <input
+                      type="url"
+                      value={metadata.ogImage}
+                      onChange={(e) => setMetadata(prev => ({ ...prev, ogImage: e.target.value }))}
+                      placeholder="Image URL for social media sharing"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold text-slate-800 mb-4">Advanced SEO</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Canonical URL
+                    </label>
+                    <input
+                      type="url"
+                      value={metadata.canonicalUrl}
+                      onChange={(e) => setMetadata(prev => ({ ...prev, canonicalUrl: e.target.value }))}
+                      placeholder="Canonical URL for this page"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Robots Meta Tag
+                    </label>
+                    <select
+                      value={metadata.robotsIndex}
+                      onChange={(e) => setMetadata(prev => ({ ...prev, robotsIndex: e.target.value }))}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    >
+                      <option value="index,follow">Index, Follow</option>
+                      <option value="noindex,nofollow">No Index, No Follow</option>
+                      <option value="index,nofollow">Index, No Follow</option>
+                      <option value="noindex,follow">No Index, Follow</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-8 pt-6 border-t border-slate-200">
+              <button
+                onClick={() => setShowMetadataPanel(false)}
+                className="flex-1 px-4 py-2 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  console.log("Saving metadata:", metadata);
+                  setShowMetadataPanel(false);
+                }}
+                className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+              >
+                Save Metadata
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mobile overlay for properties panel */}
       {showPropertiesPanel && window.innerWidth < 1024 && (
