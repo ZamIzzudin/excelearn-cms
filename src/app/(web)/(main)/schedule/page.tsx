@@ -22,6 +22,7 @@ import InputForm from "src/components/Form";
 import Notification from "src/components/Notification";
 import { Form } from "antd";
 import dayjs from "dayjs";
+import * as XLSX from "xlsx";
 
 // Dummy data untuk schedule
 const dummyScheduleData = [
@@ -171,60 +172,227 @@ export default function SchedulePage() {
   };
 
   const handleExportTemplate = () => {
-    const template = [
-      {
-        title: "Sample Event",
-        description: "Event description",
-        date: "2024-01-15",
-        time: "09:00",
-        duration: 60,
-        location: "Location",
-        attendees: "Attendee names",
-        type: "meeting",
-        priority: "medium",
-      },
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    
+    // Define headers and sample data
+    const headers = [
+      "Title",
+      "Description", 
+      "Date",
+      "Time",
+      "Duration (minutes)",
+      "Location",
+      "Attendees",
+      "Type",
+      "Priority"
     ];
-
-    const csvContent = [
-      "title,description,date,time,duration,location,attendees,type,priority",
-      ...template.map((row) =>
-        Object.values(row)
-          .map((val) => `"${val}"`)
-          .join(",")
-      ),
-    ].join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "schedule_template.csv";
-    a.click();
-    window.URL.revokeObjectURL(url);
+    
+    const sampleData = [
+      "Team Meeting",
+      "Weekly team sync meeting",
+      "2024-01-15",
+      "09:00",
+      60,
+      "Conference Room A",
+      "John, Jane, Mike",
+      "meeting",
+      "high"
+    ];
+    
+    // Create worksheet data with headers and sample
+    const wsData = [
+      headers,
+      sampleData
+    ];
+    
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    
+    // Set column widths
+    const colWidths = [
+      { wch: 20 }, // Title
+      { wch: 30 }, // Description
+      { wch: 12 }, // Date
+      { wch: 8 },  // Time
+      { wch: 18 }, // Duration
+      { wch: 20 }, // Location
+      { wch: 25 }, // Attendees
+      { wch: 12 }, // Type
+      { wch: 10 }  // Priority
+    ];
+    ws['!cols'] = colWidths;
+    
+    // Make header row bold
+    const headerRange = XLSX.utils.decode_range(ws['!ref'] || 'A1:I1');
+    for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
+      const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+      if (!ws[cellAddress]) continue;
+      
+      ws[cellAddress].s = {
+        font: { bold: true },
+        fill: { fgColor: { rgb: "E2E8F0" } },
+        alignment: { horizontal: "center" }
+      };
+    }
+    
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, "Schedule Template");
+    
+    // Generate and download file
+    XLSX.writeFile(wb, "schedule_template.xlsx");
+    
+    Notification("success", "Template downloaded successfully");
   };
 
   const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const csvData = event.target?.result as string;
-          const lines = csvData.split("\n");
-          const headers = lines[0].split(",").map((h) => h.replace(/"/g, ""));
+      try {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const data = event.target?.result;
+            const workbook = XLSX.read(data, { type: "binary" });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            
+            // Convert to JSON, starting from row 3 (index 2) to skip headers and sample data
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
+              header: 1,
+              range: 2 // Start from row 3 (0-indexed, so 2)
+            });
+            
+            // Define the expected column mapping
+            const columnMapping = [
+              'title',
+              'description', 
+              'date',
+              'time',
+              'duration',
+              'location',
+              'attendees',
+              'type',
+              'priority'
+            ];
+            
+            const newEvents = jsonData
+              .filter((row: any) => row && row.length > 0 && row[0]) // Filter out empty rows
+              .map((row: any, index: number) => {
+                const eventData: any = { 
+                  id: Date.now() + index 
+                };
+                
+                columnMapping.forEach((field, colIndex) => {
+                  const value = row[colIndex];
+                  if (value !== undefined && value !== null && value !== '') {
+                    // Handle date formatting
+                    if (field === 'date' && typeof value === 'number') {
+                      // Excel date serial number to JS date
+                      const excelDate = new Date((value - 25569) * 86400 * 1000);
+                      eventData[field] = dayjs(excelDate).format('YYYY-MM-DD');
+                    } else if (field === 'duration') {
+                      eventData[field] = parseInt(value) || 0;
+                    } else {
+                      eventData[field] = String(value).trim();
+                    }
+                  }
+                });
+                
+                return eventData;
+              })
+              .filter((event: any) => event.title); // Only include events with titles
+            
+            if (newEvents.length > 0) {
+              setScheduleData((prev) => [...prev, ...newEvents]);
+              Notification("success", `Successfully imported ${newEvents.length} events`);
+            } else {
+              Notification("error", "No valid events found in the file. Please check the format.");
+            }
+            
+          } catch (error) {
+            console.error("Import error:", error);
+            Notification("error", "Failed to import file. Please check the file format.");
+          }
+        };
+        
+        reader.readAsBinaryString(file);
+        
+      } catch (error) {
+        console.error("File reading error:", error);
+        Notification("error", "Failed to read the file.");
+      }
+    }
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
-          const newEvents = lines
-            .slice(1)
-            .filter((line) => line.trim())
-            .map((line, index) => {
-              const values = line.split(",").map((v) => v.replace(/"/g, ""));
-              const eventData: any = { id: Date.now() + index };
+  // Updated file input to accept only Excel files
+  const handleFileInputClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.accept = ".xlsx,.xls";
+      fileInputRef.current.click();
+    }
+  };
 
-              headers.forEach((header, i) => {
-                eventData[header.trim()] = values[i]?.trim() || "";
-              });
+  const validateImportedEvent = (event: any) => {
+    const requiredFields = ['title', 'date', 'time'];
+    const validTypes = ['meeting', 'deadline', 'presentation', 'training', 'event', 'other'];
+    const validPriorities = ['high', 'medium', 'low'];
+    
+    // Check required fields
+    for (const field of requiredFields) {
+      if (!event[field]) {
+        return false;
+      }
+    }
+    
+    // Validate date format
+    if (!dayjs(event.date).isValid()) {
+      return false;
+    }
+    
+    // Validate time format (basic check)
+    if (!/^\d{1,2}:\d{2}$/.test(event.time)) {
+      return false;
+    }
+    
+    // Set default values for optional fields
+    if (!validTypes.includes(event.type)) {
+      event.type = 'other';
+    }
+    
+    if (!validPriorities.includes(event.priority)) {
+      event.priority = 'medium';
+    }
+    
+    if (!event.duration) {
+      event.duration = 60;
+    }
+    
+    return true;
+  };
 
-              return eventData;
+  // Helper function to format the template instructions
+  const getTemplateInstructions = () => {
+    return (
+      <div className="text-sm text-slate-600 space-y-2">
+        <p><strong>Template Instructions:</strong></p>
+        <ul className="list-disc list-inside space-y-1 ml-2">
+          <li>Row 1: Column headers (bold formatting)</li>
+          <li>Row 2: Sample data for reference</li>
+          <li>Row 3+: Your actual event data</li>
+          <li>Required fields: Title, Date (YYYY-MM-DD), Time (HH:MM)</li>
+          <li>Date format: YYYY-MM-DD (e.g., 2024-01-15)</li>
+          <li>Time format: HH:MM (e.g., 09:00, 14:30)</li>
+          <li>Type options: meeting, deadline, presentation, training, event, other</li>
+          <li>Priority options: high, medium, low</li>
+        </ul>
+      </div>
+    );
+  };
             });
 
           setScheduleData((prev) => [...prev, ...newEvents]);
@@ -286,7 +454,7 @@ export default function SchedulePage() {
             <span className="hidden sm:inline">Template</span>
           </button>
           <button
-            onClick={() => fileInputRef.current?.click()}
+            onClick={handleFileInputClick}
             className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors"
           >
             <Upload className="w-5 h-5" />
@@ -295,7 +463,7 @@ export default function SchedulePage() {
           <input
             ref={fileInputRef}
             type="file"
-            accept=".csv,.xlsx,.xls"
+            accept=".xlsx,.xls"
             onChange={handleImportExcel}
             className="hidden"
           />
@@ -552,6 +720,24 @@ export default function SchedulePage() {
                 </button>
               </div>
             </Form>
+          </div>
+        </div>
+      )}
+
+      {/* Template Instructions Modal - Optional */}
+      {/* You can add this if you want to show instructions */}
+      {false && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold text-slate-800 mb-4">
+              Import Instructions
+            </h2>
+            {getTemplateInstructions()}
+            <div className="flex gap-3 mt-6">
+              <button className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors">
+                Got it
+              </button>
+            </div>
           </div>
         </div>
       )}
