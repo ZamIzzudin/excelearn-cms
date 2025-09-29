@@ -10,8 +10,6 @@ import {
   Upload,
   ChevronLeft,
   ChevronRight,
-  Edit,
-  Trash2,
   Clock,
   MapPin,
   User,
@@ -174,22 +172,22 @@ export default function SchedulePage() {
   const handleExportTemplate = () => {
     // Create workbook and worksheet
     const wb = XLSX.utils.book_new();
-    
+
     // Define headers and sample data
     const headers = [
       "Title",
-      "Description", 
+      "Description",
       "Date",
       "Time",
       "Duration (minutes)",
       "Location",
       "Attendees",
       "Type",
-      "Priority"
+      "Priority",
     ];
-    
+
     const sampleData = [
-      "Team Meeting",
+      "Team Meeting [SAMPLE DATA DONT DELETE]",
       "Weekly team sync meeting",
       "2024-01-15",
       "09:00",
@@ -197,50 +195,34 @@ export default function SchedulePage() {
       "Conference Room A",
       "John, Jane, Mike",
       "meeting",
-      "high"
+      "high",
     ];
-    
+
     // Create worksheet data with headers and sample
-    const wsData = [
-      headers,
-      sampleData
-    ];
-    
+    const wsData = [headers, sampleData];
+
     const ws = XLSX.utils.aoa_to_sheet(wsData);
-    
+
     // Set column widths
     const colWidths = [
       { wch: 20 }, // Title
       { wch: 30 }, // Description
       { wch: 12 }, // Date
-      { wch: 8 },  // Time
+      { wch: 8 }, // Time
       { wch: 18 }, // Duration
       { wch: 20 }, // Location
       { wch: 25 }, // Attendees
       { wch: 12 }, // Type
-      { wch: 10 }  // Priority
+      { wch: 10 }, // Priority
     ];
-    ws['!cols'] = colWidths;
-    
-    // Make header row bold
-    const headerRange = XLSX.utils.decode_range(ws['!ref'] || 'A1:I1');
-    for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
-      const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
-      if (!ws[cellAddress]) continue;
-      
-      ws[cellAddress].s = {
-        font: { bold: true },
-        fill: { fgColor: { rgb: "E2E8F0" } },
-        alignment: { horizontal: "center" }
-      };
-    }
-    
+    ws["!cols"] = colWidths;
+
     // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, "Schedule Template");
-    
+    XLSX.utils.book_append_sheet(wb, ws, "SCHEDULE");
+
     // Generate and download file
-    XLSX.writeFile(wb, "schedule_template.xlsx");
-    
+    XLSX.writeFile(wb, "SCHEDULE_TEMPLATE.xlsx");
+
     Notification("success", "Template downloaded successfully");
   };
 
@@ -255,77 +237,86 @@ export default function SchedulePage() {
             const workbook = XLSX.read(data, { type: "binary" });
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
-            
+
             // Convert to JSON, starting from row 3 (index 2) to skip headers and sample data
-            const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, {
               header: 1,
-              range: 2 // Start from row 3 (0-indexed, so 2)
+              range: 2, // Start from row 3 (0-indexed, so 2)
             });
-            
+
             // Define the expected column mapping
             const columnMapping = [
-              'title',
-              'description', 
-              'date',
-              'time',
-              'duration',
-              'location',
-              'attendees',
-              'type',
-              'priority'
+              "title",
+              "description",
+              "date",
+              "time",
+              "duration",
+              "location",
+              "attendees",
+              "type",
+              "priority",
             ];
-            
+
             const newEvents = jsonData
               .filter((row: any) => row && row.length > 0 && row[0]) // Filter out empty rows
               .map((row: any, index: number) => {
-                const eventData: any = { 
-                  id: Date.now() + index 
+                const eventData: any = {
+                  id: Date.now() + index,
                 };
-                
+
                 columnMapping.forEach((field, colIndex) => {
                   const value = row[colIndex];
-                  if (value !== undefined && value !== null && value !== '') {
+                  if (value !== undefined && value !== null && value !== "") {
                     // Handle date formatting
-                    if (field === 'date' && typeof value === 'number') {
+                    if (field === "date" && typeof value === "number") {
                       // Excel date serial number to JS date
-                      const excelDate = new Date((value - 25569) * 86400 * 1000);
-                      eventData[field] = dayjs(excelDate).format('YYYY-MM-DD');
-                    } else if (field === 'duration') {
+                      const excelDate = new Date(
+                        (value - 25569) * 86400 * 1000
+                      );
+                      eventData[field] = dayjs(excelDate).format("YYYY-MM-DD");
+                    } else if (field === "duration") {
                       eventData[field] = parseInt(value) || 0;
                     } else {
                       eventData[field] = String(value).trim();
                     }
                   }
                 });
-                
+
                 return eventData;
               })
               .filter((event: any) => event.title); // Only include events with titles
-            
+
             if (newEvents.length > 0) {
               setScheduleData((prev) => [...prev, ...newEvents]);
-              Notification("success", `Successfully imported ${newEvents.length} events`);
+              Notification(
+                "success",
+                `Successfully imported ${newEvents.length} events`
+              );
             } else {
-              Notification("error", "No valid events found in the file. Please check the format.");
+              Notification(
+                "error",
+                "No valid events found in the file. Please check the format."
+              );
             }
-            
           } catch (error) {
             console.error("Import error:", error);
-            Notification("error", "Failed to import file. Please check the file format.");
+            Notification(
+              "error",
+              "Failed to import file. Please check the file format."
+            );
           }
         };
-        
+
         reader.readAsBinaryString(file);
-        
       } catch (error) {
         console.error("File reading error:", error);
         Notification("error", "Failed to read the file.");
       }
     }
-    
+
     // Reset file input
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -338,40 +329,47 @@ export default function SchedulePage() {
   };
 
   const validateImportedEvent = (event: any) => {
-    const requiredFields = ['title', 'date', 'time'];
-    const validTypes = ['meeting', 'deadline', 'presentation', 'training', 'event', 'other'];
-    const validPriorities = ['high', 'medium', 'low'];
-    
+    const requiredFields = ["title", "date", "time"];
+    const validTypes = [
+      "meeting",
+      "deadline",
+      "presentation",
+      "training",
+      "event",
+      "other",
+    ];
+    const validPriorities = ["high", "medium", "low"];
+
     // Check required fields
     for (const field of requiredFields) {
       if (!event[field]) {
         return false;
       }
     }
-    
+
     // Validate date format
     if (!dayjs(event.date).isValid()) {
       return false;
     }
-    
+
     // Validate time format (basic check)
     if (!/^\d{1,2}:\d{2}$/.test(event.time)) {
       return false;
     }
-    
+
     // Set default values for optional fields
     if (!validTypes.includes(event.type)) {
-      event.type = 'other';
+      event.type = "other";
     }
-    
+
     if (!validPriorities.includes(event.priority)) {
-      event.priority = 'medium';
+      event.priority = "medium";
     }
-    
+
     if (!event.duration) {
       event.duration = 60;
     }
-    
+
     return true;
   };
 
@@ -379,7 +377,9 @@ export default function SchedulePage() {
   const getTemplateInstructions = () => {
     return (
       <div className="text-sm text-slate-600 space-y-2">
-        <p><strong>Template Instructions:</strong></p>
+        <p>
+          <strong>Template Instructions:</strong>
+        </p>
         <ul className="list-disc list-inside space-y-1 ml-2">
           <li>Row 1: Column headers (bold formatting)</li>
           <li>Row 2: Sample data for reference</li>
@@ -387,22 +387,14 @@ export default function SchedulePage() {
           <li>Required fields: Title, Date (YYYY-MM-DD), Time (HH:MM)</li>
           <li>Date format: YYYY-MM-DD (e.g., 2024-01-15)</li>
           <li>Time format: HH:MM (e.g., 09:00, 14:30)</li>
-          <li>Type options: meeting, deadline, presentation, training, event, other</li>
+          <li>
+            Type options: meeting, deadline, presentation, training, event,
+            other
+          </li>
           <li>Priority options: high, medium, low</li>
         </ul>
       </div>
     );
-  };
-            });
-
-          setScheduleData((prev) => [...prev, ...newEvents]);
-          Notification("success", `Imported ${newEvents.length} events`);
-        } catch (error) {
-          Notification("error", "Failed to import file");
-        }
-      };
-      reader.readAsText(file);
-    }
   };
 
   const getPriorityColor = (priority: string) => {
