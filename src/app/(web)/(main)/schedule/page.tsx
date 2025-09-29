@@ -393,17 +393,6 @@ export default function SchedulePage() {
       </div>
     );
   };
-            });
-
-          setScheduleData((prev) => [...prev, ...newEvents]);
-          Notification("success", `Imported ${newEvents.length} events`);
-        } catch (error) {
-          Notification("error", "Failed to import file");
-        }
-      };
-      reader.readAsText(file);
-    }
-  };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
