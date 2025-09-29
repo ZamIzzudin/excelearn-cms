@@ -29,7 +29,7 @@ const dummyScheduleData = [
     id: 1,
     title: "Team Meeting",
     description: "Weekly team sync meeting",
-    date: "2024-01-15",
+    date: "2025-09-15",
     time: "09:00",
     duration: 60,
     location: "Conference Room A",
@@ -41,7 +41,7 @@ const dummyScheduleData = [
     id: 2,
     title: "Project Deadline",
     description: "Submit final project deliverables",
-    date: "2024-01-18",
+    date: "2025-09-18",
     time: "17:00",
     duration: 0,
     location: "Online",
@@ -53,7 +53,7 @@ const dummyScheduleData = [
     id: 3,
     title: "Client Presentation",
     description: "Present Q1 results to client",
-    date: "2024-01-22",
+    date: "2025-09-22",
     time: "14:00",
     duration: 90,
     location: "Client Office",
@@ -65,7 +65,7 @@ const dummyScheduleData = [
     id: 4,
     title: "Training Session",
     description: "New employee onboarding",
-    date: "2024-01-25",
+    date: "2025-09-25",
     time: "10:00",
     duration: 120,
     location: "Training Room",
@@ -438,7 +438,12 @@ export default function SchedulePage() {
               </button>
             </div>
 
-            <Form form={form} onFinish={handleSaveEvent} layout="vertical">
+            <Form
+              form={form}
+              onFinish={handleSaveEvent}
+              layout="vertical"
+              requiredMark={false}
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
                   <InputForm
