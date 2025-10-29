@@ -3,102 +3,31 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+
 import {
-  Calendar,
   Plus,
   Download,
   Upload,
   ChevronLeft,
   ChevronRight,
-  Clock,
-  MapPin,
-  User,
-  FileText,
-  X,
 } from "lucide-react";
-import InputForm from "src/components/Form";
-import Notification from "src/components/Notification";
 import { Form } from "antd";
 import dayjs from "dayjs";
 import * as XLSX from "xlsx";
 
-// Dummy data untuk schedule
-const dummyScheduleData = [
-  {
-    id: 1,
-    title: "Team Meeting",
-    description: "Weekly team sync meeting",
-    date: "2025-09-15",
-    time: "09:00",
-    duration: 60,
-    location: "Conference Room A",
-    attendees: "John, Jane, Mike",
-    type: "meeting",
-    priority: "high",
-  },
-  {
-    id: 2,
-    title: "Project Deadline",
-    description: "Submit final project deliverables",
-    date: "2025-09-18",
-    time: "17:00",
-    duration: 0,
-    location: "Online",
-    attendees: "Development Team",
-    type: "deadline",
-    priority: "high",
-  },
-  {
-    id: 3,
-    title: "Client Presentation",
-    description: "Present Q1 results to client",
-    date: "2025-09-22",
-    time: "14:00",
-    duration: 90,
-    location: "Client Office",
-    attendees: "Sales Team, Client",
-    type: "presentation",
-    priority: "medium",
-  },
-  {
-    id: 4,
-    title: "Training Session",
-    description: "New employee onboarding",
-    date: "2025-09-25",
-    time: "10:00",
-    duration: 120,
-    location: "Training Room",
-    attendees: "HR Team, New Employees",
-    type: "training",
-    priority: "low",
-  },
-];
+import Notification from "@/components/Notification";
 
-const eventTypes = [
-  { label: "Meeting", value: "meeting" },
-  { label: "Deadline", value: "deadline" },
-  { label: "Presentation", value: "presentation" },
-  { label: "Training", value: "training" },
-  { label: "Event", value: "event" },
-  { label: "Other", value: "other" },
-];
-
-const priorityOptions = [
-  { label: "High", value: "high" },
-  { label: "Medium", value: "medium" },
-  { label: "Low", value: "low" },
-];
+import { useSchedules, useDelete } from "./hook";
 
 export default function SchedulePage() {
+  const router = useRouter();
+
   const [currentDate, setCurrentDate] = useState(dayjs());
-  const [scheduleData, setScheduleData] = useState(dummyScheduleData);
-  const [showEventModal, setShowEventModal] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<any>(null);
-  const [selectedDate, setSelectedDate] = useState<string>("");
+
   const [form] = Form.useForm();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Generate calendar days
   const generateCalendarDays = () => {
     const startOfMonth = currentDate.startOf("month");
     const endOfMonth = currentDate.endOf("month");
@@ -117,63 +46,20 @@ export default function SchedulePage() {
   };
 
   const getEventsForDate = (date: dayjs.Dayjs) => {
-    return scheduleData.filter((event) =>
-      dayjs(event.date).isSame(date, "day")
-    );
-  };
-
-  const handleAddEvent = () => {
-    setEditingEvent(null);
-    setShowEventModal(true);
-    form.resetFields();
-  };
-
-  const handleEditEvent = (event: any) => {
-    setEditingEvent(event);
-    setShowEventModal(true);
-    form.setFieldsValue({
-      ...event,
-      date: dayjs(event.date),
-    });
+    return [];
+    // return scheduleData.filter((event) =>
+    //   dayjs(event.date).isSame(date, "day")
+    // );
   };
 
   const handleDeleteEvent = (eventId: number) => {
-    setScheduleData((prev) => prev.filter((event) => event.id !== eventId));
-    Notification("success", "Event deleted successfully");
-  };
-
-  const handleSaveEvent = async (values: any) => {
-    try {
-      const eventData = {
-        ...values,
-        date: values.date.format("YYYY-MM-DD"),
-        id: editingEvent ? editingEvent.id : Date.now(),
-      };
-
-      if (editingEvent) {
-        setScheduleData((prev) =>
-          prev.map((event) =>
-            event.id === editingEvent.id ? eventData : event
-          )
-        );
-        Notification("success", "Event updated successfully");
-      } else {
-        setScheduleData((prev) => [...prev, eventData]);
-        Notification("success", "Event added successfully");
-      }
-
-      setShowEventModal(false);
-      form.resetFields();
-    } catch (error) {
-      Notification("error", "Failed to save event");
-    }
+    // setScheduleData((prev) => prev.filter((event) => event.id !== eventId));
+    Notification("success", "Schedule deleted successfully");
   };
 
   const handleExportTemplate = () => {
-    // Create workbook and worksheet
     const wb = XLSX.utils.book_new();
 
-    // Define headers and sample data
     const headers = [
       "Title",
       "Description",
@@ -198,12 +84,10 @@ export default function SchedulePage() {
       "high",
     ];
 
-    // Create worksheet data with headers and sample
     const wsData = [headers, sampleData];
 
     const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-    // Set column widths
     const colWidths = [
       { wch: 20 }, // Title
       { wch: 30 }, // Description
@@ -287,7 +171,7 @@ export default function SchedulePage() {
               .filter((event: any) => event.title); // Only include events with titles
 
             if (newEvents.length > 0) {
-              setScheduleData((prev) => [...prev, ...newEvents]);
+              // setScheduleData((prev) => [...prev, ...newEvents]);
               Notification(
                 "success",
                 `Successfully imported ${newEvents.length} events`
@@ -320,7 +204,6 @@ export default function SchedulePage() {
     }
   };
 
-  // Updated file input to accept only Excel files
   const handleFileInputClick = () => {
     if (fileInputRef.current) {
       fileInputRef.current.accept = ".xlsx,.xls";
@@ -328,52 +211,6 @@ export default function SchedulePage() {
     }
   };
 
-  const validateImportedEvent = (event: any) => {
-    const requiredFields = ["title", "date", "time"];
-    const validTypes = [
-      "meeting",
-      "deadline",
-      "presentation",
-      "training",
-      "event",
-      "other",
-    ];
-    const validPriorities = ["high", "medium", "low"];
-
-    // Check required fields
-    for (const field of requiredFields) {
-      if (!event[field]) {
-        return false;
-      }
-    }
-
-    // Validate date format
-    if (!dayjs(event.date).isValid()) {
-      return false;
-    }
-
-    // Validate time format (basic check)
-    if (!/^\d{1,2}:\d{2}$/.test(event.time)) {
-      return false;
-    }
-
-    // Set default values for optional fields
-    if (!validTypes.includes(event.type)) {
-      event.type = "other";
-    }
-
-    if (!validPriorities.includes(event.priority)) {
-      event.priority = "medium";
-    }
-
-    if (!event.duration) {
-      event.duration = 60;
-    }
-
-    return true;
-  };
-
-  // Helper function to format the template instructions
   const getTemplateInstructions = () => {
     return (
       <div className="text-sm text-slate-600 space-y-2">
@@ -434,7 +271,7 @@ export default function SchedulePage() {
         <div>
           <h1 className="text-3xl font-bold text-slate-800">Schedule</h1>
           <p className="text-slate-600 mt-1">
-            Manage your events and appointments
+            Manage your schedules and appointments
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -460,11 +297,11 @@ export default function SchedulePage() {
             className="hidden"
           />
           <button
-            onClick={handleAddEvent}
+            onClick={() => router.push("/schedule/editor")}
             className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
           >
             <Plus className="w-5 h-5" />
-            <span className="hidden sm:inline">Add Event</span>
+            <span className="hidden sm:inline">Add Schedule</span>
           </button>
         </div>
       </div>
@@ -530,8 +367,8 @@ export default function SchedulePage() {
                       : "border-slate-100 opacity-50"
                   } ${isToday ? "bg-indigo-50 border-indigo-200" : ""}`}
                   onClick={() => {
-                    setSelectedDate(day.format("YYYY-MM-DD"));
-                    handleAddEvent();
+                    // setSelectedDate(day.format("YYYY-MM-DD"));
+                    // handleAddEvent();
                   }}
                 >
                   <div
@@ -549,23 +386,23 @@ export default function SchedulePage() {
                   <div className="space-y-1">
                     {events.slice(0, 3).map((event) => (
                       <div
-                        key={event.id}
+                        // key={event.id}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleEditEvent(event);
+                          // handleEditEvent(event);
                         }}
-                        className={`text-xs p-1 rounded truncate cursor-pointer hover:opacity-80 transition-opacity ${getPriorityColor(
-                          event.priority
-                        )}`}
-                        title={`${event.title} - ${event.time}`}
+                        // className={`text-xs p-1 rounded truncate cursor-pointer hover:opacity-80 transition-opacity ${getPriorityColor(
+                        //   // event.priority
+                        // )}`}
+                        // title={`${event.title} - ${event.time}`}
                       >
                         <div className="flex items-center gap-1">
                           <div
-                            className={`w-2 h-2 rounded-full ${getTypeColor(
-                              event.type
-                            )}`}
+                          // className={`w-2 h-2 rounded-full ${getTypeColor(
+                          //   // event.type
+                          // )}`}
                           />
-                          <span className="truncate">{event.title}</span>
+                          {/* <span className="truncate">{event.title}</span> */}
                         </div>
                       </div>
                     ))}
@@ -581,158 +418,6 @@ export default function SchedulePage() {
           </div>
         </div>
       </div>
-
-      {/* Event Modal */}
-      {showEventModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-slate-800">
-                {editingEvent ? "Edit Event" : "Add New Event"}
-              </h2>
-              <button
-                onClick={() => setShowEventModal(false)}
-                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-slate-600" />
-              </button>
-            </div>
-
-            <Form
-              form={form}
-              onFinish={handleSaveEvent}
-              layout="vertical"
-              requiredMark={false}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="md:col-span-2">
-                  <InputForm
-                    type="text"
-                    name="title"
-                    label="Event Title"
-                    placeholder="Enter event title"
-                    required
-                    icon={<FileText className="w-5 h-5 text-slate-400" />}
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <InputForm
-                    type="textarea"
-                    name="description"
-                    label="Description"
-                    placeholder="Enter event description"
-                  />
-                </div>
-
-                <InputForm
-                  type="date"
-                  name="date"
-                  label="Date"
-                  required
-                  icon={<Calendar className="w-5 h-5 text-slate-400" />}
-                />
-
-                <InputForm
-                  type="text"
-                  name="time"
-                  label="Time"
-                  placeholder="09:00"
-                  required
-                  icon={<Clock className="w-5 h-5 text-slate-400" />}
-                />
-
-                <InputForm
-                  type="number"
-                  name="duration"
-                  label="Duration (minutes)"
-                  placeholder="60"
-                />
-
-                <InputForm
-                  type="text"
-                  name="location"
-                  label="Location"
-                  placeholder="Enter location"
-                  icon={<MapPin className="w-5 h-5 text-slate-400" />}
-                />
-
-                <InputForm
-                  type="text"
-                  name="attendees"
-                  label="Attendees"
-                  placeholder="Enter attendee names"
-                  icon={<User className="w-5 h-5 text-slate-400" />}
-                />
-
-                <InputForm
-                  type="select"
-                  name="type"
-                  label="Event Type"
-                  placeholder="Select event type"
-                  options={eventTypes}
-                  required
-                />
-
-                <InputForm
-                  type="select"
-                  name="priority"
-                  label="Priority"
-                  placeholder="Select priority"
-                  options={priorityOptions}
-                  required
-                />
-              </div>
-
-              <div className="flex gap-3 mt-8 pt-6 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setShowEventModal(false)}
-                  className="flex-1 px-4 py-2 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                {editingEvent && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      handleDeleteEvent(editingEvent.id);
-                      setShowEventModal(false);
-                    }}
-                    className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors"
-                  >
-                    Delete
-                  </button>
-                )}
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
-                >
-                  {editingEvent ? "Update Event" : "Add Event"}
-                </button>
-              </div>
-            </Form>
-          </div>
-        </div>
-      )}
-
-      {/* Template Instructions Modal - Optional */}
-      {/* You can add this if you want to show instructions */}
-      {false && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-slate-800 mb-4">
-              Import Instructions
-            </h2>
-            {getTemplateInstructions()}
-            <div className="flex gap-3 mt-6">
-              <button className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors">
-                Got it
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

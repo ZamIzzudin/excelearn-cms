@@ -5,8 +5,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { useGlobalState } from "src/lib/middleware";
-import { useLogout } from "src/hooks/useAuth";
+import { useGlobalState } from "@/lib/middleware";
+import { useLogout } from "@/hooks/useAuth";
 
 import { MenuItem } from "@/interface/type";
 import { DefaultMenu, SuperMenu } from "@/lib/var";

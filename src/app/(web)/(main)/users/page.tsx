@@ -7,7 +7,7 @@ import { useGlobalState } from "@/lib/middleware";
 import { useRouter } from "next/navigation";
 
 import { Search, Plus, Filter, Edit, Trash2 } from "lucide-react";
-import InputForm from "src/components/Form";
+import InputForm from "@/components/Form";
 import Notification from "@/components/Notification";
 import { Form } from "antd";
 

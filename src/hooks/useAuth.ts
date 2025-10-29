@@ -3,7 +3,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { Login } from "./serviceAuth";
-import { useGlobalState } from "src/lib/middleware";
+import { useGlobalState } from "@/lib/middleware";
 import { useRouter } from "next/navigation";
 
 export const useLogin = () => {

@@ -7,6 +7,7 @@ import {
   Form,
   Select,
   DatePicker,
+  TimePicker,
   Upload,
   Switch,
   Radio,
@@ -14,7 +15,8 @@ import {
 } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { CircleAlert } from "lucide-react";
-import { cn } from "src/lib/utils";
+import { cn } from "@/lib/utils";
+import dayjs from "dayjs";
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -30,7 +32,8 @@ type InputFormProps = {
     | "file"
     | "switch"
     | "radio"
-    | "checkbox";
+    | "checkbox"
+    | "time";
   name: string;
   form?: Record<string, any>;
   setForm?: React.Dispatch<React.SetStateAction<Record<string, any>>>;
@@ -141,6 +144,19 @@ const InputForm: React.FC<InputFormProps> = ({
       );
       break;
 
+    case "time":
+      inputElement = (
+        <TimePicker
+          value={form[name] || undefined}
+          onChange={handleChange}
+          placeholder={placeholder}
+          disabled={disabled}
+          defaultOpenValue={dayjs("00:00", "HH:mm")}
+          format={"HH:mm"}
+          className={cn(baseInputClass, "w-full")}
+        />
+      );
+      break;
     case "select":
       inputElement = (
         <Select
@@ -180,10 +196,25 @@ const InputForm: React.FC<InputFormProps> = ({
     case "file":
       inputElement = (
         <Upload
-          fileList={form[name] || []}
-          onChange={(info) => handleChange(info.fileList)}
+          fileList={[]}
+          onChange={(info: any) => {
+            if (info?.file) {
+              const reader = new FileReader();
+              reader.onload = (event) => {
+                const imageData = {
+                  id: `img-${Date.now()}`,
+                  name: info?.file.name,
+                  size: info?.file.size,
+                  type: info?.file.type,
+                  data: event.target?.result as string,
+                  file: info?.file,
+                };
+                handleChange(imageData);
+              };
+              reader.readAsDataURL(info?.file);
+            }
+          }}
           beforeUpload={() => false}
-          multiple={multiple}
           accept={accept}
           className="w-full"
         >
@@ -233,18 +264,21 @@ const InputForm: React.FC<InputFormProps> = ({
 
     case "checkbox":
       inputElement = (
-        <Checkbox.Group
-          value={form[name] || []}
-          onChange={(checkedValues) => handleChange(checkedValues)}
-          disabled={disabled}
-          className="space-y-2"
-        >
-          {options.map((option) => (
-            <Checkbox key={option.value} value={option.value} className="block">
-              {option.label}
-            </Checkbox>
-          ))}
-        </Checkbox.Group>
+        <div className="bg-slate-50 border border-slate-300 p-2 rounded-md h-full">
+          <Checkbox
+            key={name}
+            className="flex"
+            onChange={(e) =>
+              setForm((prev) => ({
+                ...prev,
+                [name]: e?.target ? e.target.checked : false,
+              }))
+            }
+            checked={form[name] || undefined}
+          >
+            {placeholder}
+          </Checkbox>
+        </div>
       );
       break;
 
@@ -266,7 +300,7 @@ const InputForm: React.FC<InputFormProps> = ({
 
   return (
     <Form.Item
-      className={cn("mb-6", className)}
+      className={className}
       label={
         label && (
           <span className={labelClass}>

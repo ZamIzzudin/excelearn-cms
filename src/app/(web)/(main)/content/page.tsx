@@ -4,8 +4,8 @@
 
 import { useState } from "react";
 import { Image, Upload, Save, Eye } from "lucide-react";
-import InputForm from "src/components/Form";
-import Notification from "src/components/Notification";
+import InputForm from "@/components/Form";
+import Notification from "@/components/Notification";
 import { Form } from "antd";
 
 // Hardcoded content types - add new types here when needed
@@ -15,7 +15,8 @@ const contentTypes = [
     name: "Hero Banner",
     description: "Main banner on homepage",
     key: "hero_banner",
-    currentImage: "https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg",
+    currentImage:
+      "https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg",
     recommendedSize: "1920x1080",
   },
   {
@@ -23,7 +24,8 @@ const contentTypes = [
     name: "About Section Image",
     description: "Image for about us section",
     key: "about_image",
-    currentImage: "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg",
+    currentImage:
+      "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg",
     recommendedSize: "800x600",
   },
   {
@@ -31,7 +33,8 @@ const contentTypes = [
     name: "Services Banner",
     description: "Banner for services section",
     key: "services_banner",
-    currentImage: "https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg",
+    currentImage:
+      "https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg",
     recommendedSize: "1200x400",
   },
   {
@@ -39,7 +42,8 @@ const contentTypes = [
     name: "Contact Background",
     description: "Background image for contact section",
     key: "contact_bg",
-    currentImage: "https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg",
+    currentImage:
+      "https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg",
     recommendedSize: "1920x600",
   },
   {
@@ -47,7 +51,8 @@ const contentTypes = [
     name: "Footer Logo",
     description: "Logo displayed in footer",
     key: "footer_logo",
-    currentImage: "https://images.pexels.com/photos/3184338/pexels-photo-3184338.jpeg",
+    currentImage:
+      "https://images.pexels.com/photos/3184338/pexels-photo-3184338.jpeg",
     recommendedSize: "200x80",
   },
   {
@@ -55,7 +60,8 @@ const contentTypes = [
     name: "Testimonial Background",
     description: "Background for testimonials section",
     key: "testimonial_bg",
-    currentImage: "https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg",
+    currentImage:
+      "https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg",
     recommendedSize: "1920x800",
   },
 ];
@@ -79,13 +85,11 @@ export default function ContentPage() {
     try {
       // Here you would typically upload the image and save to backend
       console.log("Saving content:", values);
-      
+
       // Update local state (in real app, this would come from API response)
-      setContentData(prev => 
-        prev.map(item => 
-          item.id === editingContent.id 
-            ? { ...item, ...values }
-            : item
+      setContentData((prev) =>
+        prev.map((item) =>
+          item.id === editingContent.id ? { ...item, ...values } : item
         )
       );
 
@@ -98,7 +102,7 @@ export default function ContentPage() {
   };
 
   const handlePreviewImage = (imageUrl: string) => {
-    window.open(imageUrl, '_blank');
+    window.open(imageUrl, "_blank");
   };
 
   return (
@@ -106,7 +110,9 @@ export default function ContentPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800">Content Management</h1>
+          <h1 className="text-3xl font-bold text-slate-800">
+            Content Management
+          </h1>
           <p className="text-slate-600 mt-1">
             Manage images and media content for your landing page
           </p>

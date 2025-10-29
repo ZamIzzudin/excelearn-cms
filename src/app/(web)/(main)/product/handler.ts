@@ -1,12 +1,16 @@
 /** @format */
 
-"use client";
-
 import AxiosClient from "@/lib/axios";
 
-export async function UserListService() {
+const headers = {
+  headers: {
+    "Content-Type": "multipart/form-data",
+  },
+};
+
+export async function ProductListService() {
   try {
-    const { data: response } = await AxiosClient.get("/auth/list");
+    const { data: response } = await AxiosClient.get("/product/list");
 
     const { status, message, data } = response;
 
@@ -23,19 +27,34 @@ export async function UserListService() {
   }
 }
 
-export async function RegisterService(payload: {
-  username: string;
-  password: string;
-  display_name: string;
-}) {
+export async function ProductDetailService(id: string) {
+  try {
+    const { data: response } = await AxiosClient.get(`/product/detail/${id}`);
+
+    const { status, message, data } = response;
+
+    if (status !== 200) throw new Error(message);
+
+    return {
+      status,
+      message,
+      data,
+    };
+  } catch (error: any) {
+    console.log(error);
+    return error.message;
+  }
+}
+
+export async function CreateService(payload: any) {
   try {
     const { data: response } = await AxiosClient.post(
-      "/auth/register",
-      payload
+      "/product/add",
+      payload,
+      headers
     );
 
     const { status, message, data } = response;
-    console.log(response);
 
     if (status !== 201) throw new Error(message);
 
@@ -50,16 +69,12 @@ export async function RegisterService(payload: {
   }
 }
 
-export async function UpdateService(payload: {
-  _id: string;
-  username: string;
-  password: string;
-  display_name: string;
-}) {
+export async function UpdateService(id: string, payload: any) {
   try {
     const { data: response } = await AxiosClient.put(
-      `/auth/adjust/${payload._id}`,
-      payload
+      `/product/adjust/${id}`,
+      payload,
+      headers
     );
 
     const { status, message, data } = response;
@@ -80,7 +95,7 @@ export async function UpdateService(payload: {
 export async function DeleteService(payload: string) {
   try {
     const { data: response } = await AxiosClient.delete(
-      `/auth/takedown/${payload}`
+      `/product/takedown/${payload}`
     );
 
     const { status, message } = response;

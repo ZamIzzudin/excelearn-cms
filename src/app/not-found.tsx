@@ -1,6 +1,6 @@
 /** @format */
 
-import NotFoundPage from "src/components/NotFoundPage";
+import NotFoundPage from "@/components/NotFoundPage";
 
 export default function NotFound() {
   return <NotFoundPage />;

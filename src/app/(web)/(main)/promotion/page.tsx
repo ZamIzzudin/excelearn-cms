@@ -3,9 +3,19 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Edit, Trash2, Eye, Calendar, Percent, ExternalLink, ToggleLeft, ToggleRight } from "lucide-react";
-import InputForm from "src/components/Form";
-import Notification from "src/components/Notification";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Calendar,
+  Percent,
+  ExternalLink,
+  ToggleLeft,
+  ToggleRight,
+} from "lucide-react";
+import InputForm from "@/components/Form";
+import Notification from "@/components/Notification";
 import { Form } from "antd";
 import dayjs from "dayjs";
 
@@ -14,11 +24,13 @@ const dummyPromotions = [
   {
     id: 1,
     title: "Summer Sale 2024",
-    description: "Get amazing discounts on all our premium features this summer!",
+    description:
+      "Get amazing discounts on all our premium features this summer!",
     discountPercentage: 50,
     priceBefore: 99,
     priceAfter: 49,
-    banner: "https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg",
+    banner:
+      "https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg",
     endDate: "2024-08-31",
     link: "https://example.com/summer-sale",
     isActive: true,
@@ -30,7 +42,8 @@ const dummyPromotions = [
     discountPercentage: 70,
     priceBefore: 199,
     priceAfter: 59,
-    banner: "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg",
+    banner:
+      "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg",
     endDate: "2024-11-30",
     link: "https://example.com/black-friday",
     isActive: false,
@@ -81,14 +94,16 @@ export default function PromotionPage() {
       };
 
       if (editingPromotion) {
-        setPromotionData(prev =>
-          prev.map(promo =>
-            promo.id === editingPromotion.id ? { ...promo, ...promotionData } : promo
+        setPromotionData((prev) =>
+          prev.map((promo) =>
+            promo.id === editingPromotion.id
+              ? { ...promo, ...promotionData }
+              : promo
           )
         );
         Notification("success", "Promotion updated successfully");
       } else {
-        setPromotionData(prev => [...prev, promotionData]);
+        setPromotionData((prev) => [...prev, promotionData]);
         Notification("success", "Promotion created successfully");
       }
 
@@ -100,42 +115,46 @@ export default function PromotionPage() {
   };
 
   const handleToggleActive = (promotionId: number) => {
-    setPromotionData(prev =>
-      prev.map(promo => ({
+    setPromotionData((prev) =>
+      prev.map((promo) => ({
         ...promo,
         isActive: promo.id === promotionId ? !promo.isActive : false, // Only one can be active
       }))
     );
-    
-    const promotion = promotionData.find(p => p.id === promotionId);
+
+    const promotion = promotionData.find((p) => p.id === promotionId);
     const newStatus = !promotion?.isActive;
-    
+
     Notification(
-      "success", 
+      "success",
       newStatus ? "Promotion activated" : "Promotion deactivated"
     );
   };
 
   const handleDeletePromotion = (promotionId: number) => {
-    setPromotionData(prev => prev.filter(promo => promo.id !== promotionId));
+    setPromotionData((prev) =>
+      prev.filter((promo) => promo.id !== promotionId)
+    );
     setShowDeleteModal(null);
     Notification("success", "Promotion deleted successfully");
   };
 
   const handlePreviewPromotion = (promotion: any) => {
     if (promotion.link) {
-      window.open(promotion.link, '_blank');
+      window.open(promotion.link, "_blank");
     }
   };
 
-  const activePromotion = promotionData.find(p => p.isActive);
+  const activePromotion = promotionData.find((p) => p.isActive);
 
   return (
     <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800">Promotion Management</h1>
+          <h1 className="text-3xl font-bold text-slate-800">
+            Promotion Management
+          </h1>
           <p className="text-slate-600 mt-1">
             Manage popup promotions for your website
           </p>
@@ -180,8 +199,8 @@ export default function PromotionPage() {
           <div
             key={promotion.id}
             className={`bg-white rounded-2xl border overflow-hidden hover:shadow-lg transition-all ${
-              promotion.isActive 
-                ? "border-green-300 ring-2 ring-green-100" 
+              promotion.isActive
+                ? "border-green-300 ring-2 ring-green-100"
                 : "border-slate-200"
             }`}
           >
@@ -276,14 +295,14 @@ export default function PromotionPage() {
                     </>
                   )}
                 </button>
-                
+
                 <button
                   onClick={() => handleEditPromotion(promotion)}
                   className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                 >
                   <Edit className="w-4 h-4" />
                 </button>
-                
+
                 {promotion.link && (
                   <button
                     onClick={() => handlePreviewPromotion(promotion)}
@@ -292,7 +311,7 @@ export default function PromotionPage() {
                     <ExternalLink className="w-4 h-4" />
                   </button>
                 )}
-                
+
                 <button
                   onClick={() => setShowDeleteModal(promotion.id)}
                   className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -413,7 +432,8 @@ export default function PromotionPage() {
               Delete Promotion
             </h2>
             <p className="text-slate-600 mb-6">
-              Are you sure you want to delete this promotion? This action cannot be undone.
+              Are you sure you want to delete this promotion? This action cannot
+              be undone.
             </p>
             <div className="flex gap-3">
               <button

@@ -23,13 +23,20 @@ const nextConfig = {
 
     return config;
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
+    ],
+  },
   // Disable SWC minifier to avoid Terser issues
   swcMinify: false,
   // Use Terser with proper configuration
   experimental: {
     esmExternals: false,
   },
-  images: {},
 };
 
 export default nextConfig;

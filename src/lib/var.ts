@@ -8,6 +8,7 @@ import {
   Image,
   FileText,
   Megaphone,
+  Package,
 } from "lucide-react";
 
 export const ValidPath = [
@@ -18,25 +19,25 @@ export const ValidPath = [
   "pages",
   "schedule",
   "content",
-  "blog",
+  "product",
   "promotion",
 ];
 export const DefaultMenu = [
   { id: 1, text: "Dashboard", icon: Home, href: "/" },
-  { id: 2, text: "Blog", icon: FileText, href: "/blog" },
-  { id: 3, text: "Promotion", icon: Megaphone, href: "/promotion" },
-  { id: 4, text: "Content", icon: Image, href: "/content" },
-  { id: 5, text: "Pages", icon: BarChart3, href: "/pages" },
-  { id: 6, text: "Schedule", icon: Settings, href: "/schedule" },
+  { id: 2, text: "Product", icon: Package, href: "/product" },
+  { id: 3, text: "Schedule", icon: BarChart3, href: "/schedule" },
+  { id: 4, text: "Promotion", icon: Megaphone, href: "/promotion" },
+  { id: 5, text: "Content", icon: Image, href: "/content" },
+  { id: 6, text: "Pages", icon: Layers, href: "/pages" },
 ];
 export const SuperMenu = [
   { id: 1, text: "Dashboard", icon: Home, href: "/" },
   { id: 2, text: "Users", icon: Users, href: "/users" },
-  { id: 3, text: "Blog", icon: FileText, href: "/blog" },
-  { id: 4, text: "Promotion", icon: Megaphone, href: "/promotion" },
-  { id: 5, text: "Content", icon: Image, href: "/content" },
-  { id: 6, text: "Pages", icon: Layers, href: "/pages" },
-  { id: 7, text: "Schedule", icon: BarChart3, href: "/schedule" },
+  { id: 3, text: "Product", icon: Package, href: "/product" },
+  { id: 4, text: "Schedule", icon: BarChart3, href: "/schedule" },
+  { id: 5, text: "Promotion", icon: Megaphone, href: "/promotion" },
+  { id: 6, text: "Content", icon: Image, href: "/content" },
+  { id: 7, text: "Pages", icon: Layers, href: "/pages" },
 ];
 
 export const LocalToken = "exc_auth_token";

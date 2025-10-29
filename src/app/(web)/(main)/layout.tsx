@@ -1,6 +1,6 @@
 /** @format */
 
-import Sidebar from "src/components/Sidebar";
+import Sidebar from "@/components/Sidebar";
 
 export default function RootLayout({
   children,
