@@ -11,6 +11,11 @@ import {
   Upload,
   ChevronLeft,
   ChevronRight,
+  Edit,
+  MapPin,
+  Users,
+  Clock,
+  X,
 } from "lucide-react";
 import { Form } from "antd";
 import dayjs from "dayjs";
@@ -19,14 +24,19 @@ import * as XLSX from "xlsx";
 import Notification from "@/components/Notification";
 
 import { useSchedules, useDelete } from "./hook";
+import { CreateService } from "./handler";
 
 export default function SchedulePage() {
   const router = useRouter();
 
   const [currentDate, setCurrentDate] = useState(dayjs());
+  const [hoveredDate, setHoveredDate] = useState<string | null>(null);
+  const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
 
   const [form] = Form.useForm();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: schedules = [], refetch } = useSchedules();
 
   const generateCalendarDays = () => {
     const startOfMonth = currentDate.startOf("month");
@@ -46,42 +56,60 @@ export default function SchedulePage() {
   };
 
   const getEventsForDate = (date: dayjs.Dayjs) => {
-    return [];
-    // return scheduleData.filter((event) =>
-    //   dayjs(event.date).isSame(date, "day")
-    // );
+    if (!schedules || schedules.length === 0) return [];
+
+    return schedules.filter((schedule: any) => {
+      const scheduleDate = dayjs(parseInt(schedule.schedule_date));
+      return scheduleDate.isSame(date, "day");
+    });
   };
 
-  const handleDeleteEvent = (eventId: number) => {
-    // setScheduleData((prev) => prev.filter((event) => event.id !== eventId));
-    Notification("success", "Schedule deleted successfully");
+  const handleMouseEnter = (date: dayjs.Dayjs, e: React.MouseEvent) => {
+    const events = getEventsForDate(date);
+    if (events.length > 0) {
+      setHoveredDate(date.format("YYYY-MM-DD"));
+      const rect = e.currentTarget.getBoundingClientRect();
+      setPopupPosition({ x: rect.left, y: rect.bottom });
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredDate(null);
   };
 
   const handleExportTemplate = () => {
     const wb = XLSX.utils.book_new();
 
     const headers = [
-      "Title",
-      "Description",
-      "Date",
-      "Time",
-      "Duration (minutes)",
-      "Location",
-      "Attendees",
-      "Type",
-      "Priority",
+      "schedule_name",
+      "schedule_description",
+      "schedule_date",
+      "schedule_start",
+      "schedule_end",
+      "location",
+      "quota",
+      "lecturer",
+      "is_assestment",
+      "benefits",
+      "skill_level",
+      "language",
+      "status",
     ];
 
     const sampleData = [
-      "Team Meeting [SAMPLE DATA DONT DELETE]",
-      "Weekly team sync meeting",
-      "2024-01-15",
+      "Workshop React Advanced [SAMPLE DATA DONT DELETE]",
+      "Learn advanced React patterns and best practices",
+      "2025-11-15",
       "09:00",
-      60,
-      "Conference Room A",
-      "John, Jane, Mike",
-      "meeting",
-      "high",
+      "17:00",
+      "Jakarta Convention Center",
+      "30",
+      "2",
+      "true",
+      "Certificate|Lunch|Materials",
+      "BEGINNER",
+      "INDONESIA",
+      "OPEN_SEAT",
     ];
 
     const wsData = [headers, sampleData];
@@ -89,97 +117,132 @@ export default function SchedulePage() {
     const ws = XLSX.utils.aoa_to_sheet(wsData);
 
     const colWidths = [
-      { wch: 20 }, // Title
-      { wch: 30 }, // Description
-      { wch: 12 }, // Date
-      { wch: 8 }, // Time
-      { wch: 18 }, // Duration
-      { wch: 20 }, // Location
-      { wch: 25 }, // Attendees
-      { wch: 12 }, // Type
-      { wch: 10 }, // Priority
+      { wch: 35 },
+      { wch: 50 },
+      { wch: 15 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 30 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 15 },
+      { wch: 40 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 15 },
     ];
     ws["!cols"] = colWidths;
 
-    // Add worksheet to workbook
     XLSX.utils.book_append_sheet(wb, ws, "SCHEDULE");
-
-    // Generate and download file
     XLSX.writeFile(wb, "SCHEDULE_TEMPLATE.xlsx");
 
     Notification("success", "Template downloaded successfully");
   };
 
-  const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       try {
         const reader = new FileReader();
-        reader.onload = (event) => {
+        reader.onload = async (event) => {
           try {
             const data = event.target?.result;
             const workbook = XLSX.read(data, { type: "binary" });
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
 
-            // Convert to JSON, starting from row 3 (index 2) to skip headers and sample data
             const jsonData = XLSX.utils.sheet_to_json(worksheet, {
               header: 1,
-              range: 2, // Start from row 3 (0-indexed, so 2)
+              range: 2,
             });
 
-            // Define the expected column mapping
             const columnMapping = [
-              "title",
-              "description",
-              "date",
-              "time",
-              "duration",
+              "schedule_name",
+              "schedule_description",
+              "schedule_date",
+              "schedule_start",
+              "schedule_end",
               "location",
-              "attendees",
-              "type",
-              "priority",
+              "quota",
+              "lecturer",
+              "is_assestment",
+              "benefits",
+              "skill_level",
+              "language",
+              "status",
             ];
 
-            const newEvents = jsonData
-              .filter((row: any) => row && row.length > 0 && row[0]) // Filter out empty rows
-              .map((row: any, index: number) => {
-                const eventData: any = {
-                  id: Date.now() + index,
-                };
+            const newSchedules = jsonData
+              .filter((row: any) => row && row.length > 0 && row[0])
+              .map((row: any) => {
+                const scheduleData: any = {};
 
                 columnMapping.forEach((field, colIndex) => {
                   const value = row[colIndex];
                   if (value !== undefined && value !== null && value !== "") {
-                    // Handle date formatting
-                    if (field === "date" && typeof value === "number") {
-                      // Excel date serial number to JS date
-                      const excelDate = new Date(
-                        (value - 25569) * 86400 * 1000
-                      );
-                      eventData[field] = dayjs(excelDate).format("YYYY-MM-DD");
-                    } else if (field === "duration") {
-                      eventData[field] = parseInt(value) || 0;
+                    if (field === "schedule_date" && typeof value === "string") {
+                      const dateTimestamp = dayjs(value).valueOf().toString();
+                      scheduleData[field] = dateTimestamp;
+                    } else if (field === "schedule_start" || field === "schedule_end") {
+                      const [hours, minutes] = String(value).split(":");
+                      const timeDate = dayjs()
+                        .hour(parseInt(hours))
+                        .minute(parseInt(minutes))
+                        .second(0);
+                      scheduleData[field] = timeDate.valueOf().toString();
+                    } else if (field === "quota" || field === "lecturer") {
+                      scheduleData[field] = parseInt(value) || 0;
+                    } else if (field === "is_assestment") {
+                      scheduleData[field] = String(value).toLowerCase() === "true";
+                    } else if (field === "benefits") {
+                      scheduleData[field] = String(value).split("|").map((b: string) => b.trim());
                     } else {
-                      eventData[field] = String(value).trim();
+                      scheduleData[field] = String(value).trim();
                     }
                   }
                 });
 
-                return eventData;
+                return scheduleData;
               })
-              .filter((event: any) => event.title); // Only include events with titles
+              .filter((schedule: any) => schedule.schedule_name);
 
-            if (newEvents.length > 0) {
-              // setScheduleData((prev) => [...prev, ...newEvents]);
+            if (newSchedules.length > 0) {
+              let successCount = 0;
+              let failCount = 0;
+
+              for (const schedule of newSchedules) {
+                try {
+                  const formData = new FormData();
+                  Object.keys(schedule).forEach((key) => {
+                    if (key === "benefits") {
+                      schedule[key].forEach((benefit: string) => {
+                        formData.append("benefits", benefit);
+                      });
+                    } else {
+                      formData.append(key, schedule[key]);
+                    }
+                  });
+
+                  const response = await CreateService(formData);
+                  if (response.status === 201) {
+                    successCount++;
+                  } else {
+                    failCount++;
+                  }
+                } catch (error) {
+                  failCount++;
+                }
+              }
+
+              refetch();
               Notification(
                 "success",
-                `Successfully imported ${newEvents.length} events`
+                `Successfully imported ${successCount} schedules${failCount > 0 ? ` (${failCount} failed)` : ""}`
               );
             } else {
               Notification(
                 "error",
-                "No valid events found in the file. Please check the format."
+                "No valid schedules found in the file. Please check the format."
               );
             }
           } catch (error) {
@@ -198,7 +261,6 @@ export default function SchedulePage() {
       }
     }
 
-    // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -211,58 +273,17 @@ export default function SchedulePage() {
     }
   };
 
-  const getTemplateInstructions = () => {
-    return (
-      <div className="text-sm text-slate-600 space-y-2">
-        <p>
-          <strong>Template Instructions:</strong>
-        </p>
-        <ul className="list-disc list-inside space-y-1 ml-2">
-          <li>Row 1: Column headers (bold formatting)</li>
-          <li>Row 2: Sample data for reference</li>
-          <li>Row 3+: Your actual event data</li>
-          <li>Required fields: Title, Date (YYYY-MM-DD), Time (HH:MM)</li>
-          <li>Date format: YYYY-MM-DD (e.g., 2024-01-15)</li>
-          <li>Time format: HH:MM (e.g., 09:00, 14:30)</li>
-          <li>
-            Type options: meeting, deadline, presentation, training, event,
-            other
-          </li>
-          <li>Priority options: high, medium, low</li>
-        </ul>
-      </div>
-    );
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "high":
-        return "bg-red-100 text-red-700 border-red-200";
-      case "medium":
-        return "bg-yellow-100 text-yellow-700 border-yellow-200";
-      case "low":
-        return "bg-green-100 text-green-700 border-green-200";
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "OPEN_SEAT":
+        return "bg-green-100 text-green-700";
+      case "FULL_BOOKED":
+        return "bg-red-100 text-red-700";
       default:
-        return "bg-gray-100 text-gray-700 border-gray-200";
+        return "bg-gray-100 text-gray-700";
     }
   };
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case "meeting":
-        return "bg-blue-500";
-      case "deadline":
-        return "bg-red-500";
-      case "presentation":
-        return "bg-purple-500";
-      case "training":
-        return "bg-green-500";
-      case "event":
-        return "bg-orange-500";
-      default:
-        return "bg-gray-500";
-    }
-  };
 
   return (
     <div className="space-y-8">
@@ -298,7 +319,7 @@ export default function SchedulePage() {
           />
           <button
             onClick={() => router.push("/schedule/editor")}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
           >
             <Plus className="w-5 h-5" />
             <span className="hidden sm:inline">Add Schedule</span>
@@ -357,24 +378,30 @@ export default function SchedulePage() {
               const events = getEventsForDate(day);
               const isCurrentMonth = day.isSame(currentDate, "month");
               const isToday = day.isSame(dayjs(), "day");
+              const hasEvents = events.length > 0;
 
               return (
                 <div
                   key={day.format("YYYY-MM-DD")}
-                  className={`min-h-[120px] p-2 border rounded-lg transition-colors cursor-pointer hover:bg-slate-50 ${
+                  className={`min-h-[120px] p-2 border rounded-lg transition-all cursor-pointer ${
                     isCurrentMonth
                       ? "border-slate-200"
                       : "border-slate-100 opacity-50"
-                  } ${isToday ? "bg-indigo-50 border-indigo-200" : ""}`}
+                  } ${isToday ? "bg-blue-50 border-blue-200" : ""} ${
+                    hasEvents ? "hover:shadow-md hover:border-blue-300" : "hover:bg-slate-50"
+                  }`}
+                  onMouseEnter={(e) => handleMouseEnter(day, e)}
+                  onMouseLeave={handleMouseLeave}
                   onClick={() => {
-                    // setSelectedDate(day.format("YYYY-MM-DD"));
-                    // handleAddEvent();
+                    if (!hasEvents) {
+                      router.push(`/schedule/editor?date=${day.format("YYYY-MM-DD")}`);
+                    }
                   }}
                 >
                   <div
                     className={`text-sm font-medium mb-2 ${
                       isToday
-                        ? "text-indigo-600"
+                        ? "text-blue-600"
                         : isCurrentMonth
                         ? "text-slate-800"
                         : "text-slate-400"
@@ -384,30 +411,20 @@ export default function SchedulePage() {
                   </div>
 
                   <div className="space-y-1">
-                    {events.slice(0, 3).map((event) => (
+                    {events.slice(0, 3).map((event: any) => (
                       <div
-                        // key={event.id}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // handleEditEvent(event);
-                        }}
-                        // className={`text-xs p-1 rounded truncate cursor-pointer hover:opacity-80 transition-opacity ${getPriorityColor(
-                        //   // event.priority
-                        // )}`}
-                        // title={`${event.title} - ${event.time}`}
+                        key={event.id}
+                        className="text-xs p-1.5 rounded bg-blue-100 text-blue-700 truncate cursor-pointer hover:bg-blue-200 transition-colors"
+                        title={event.schedule_name}
                       >
                         <div className="flex items-center gap-1">
-                          <div
-                          // className={`w-2 h-2 rounded-full ${getTypeColor(
-                          //   // event.type
-                          // )}`}
-                          />
-                          {/* <span className="truncate">{event.title}</span> */}
+                          <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                          <span className="truncate font-medium">{event.schedule_name}</span>
                         </div>
                       </div>
                     ))}
                     {events.length > 3 && (
-                      <div className="text-xs text-slate-500 text-center">
+                      <div className="text-xs text-slate-500 text-center font-medium">
                         +{events.length - 3} more
                       </div>
                     )}
@@ -418,6 +435,84 @@ export default function SchedulePage() {
           </div>
         </div>
       </div>
+
+      {hoveredDate && (
+        <div
+          className="fixed z-50 bg-white rounded-xl shadow-2xl border border-slate-200 p-4 w-96 max-h-[500px] overflow-y-auto"
+          style={{
+            left: `${Math.min(popupPosition.x, window.innerWidth - 400)}px`,
+            top: `${popupPosition.y + 10}px`,
+          }}
+          onMouseEnter={() => setHoveredDate(hoveredDate)}
+          onMouseLeave={handleMouseLeave}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold text-slate-800">
+              {dayjs(hoveredDate).format("MMMM D, YYYY")}
+            </h3>
+            <button
+              onClick={handleMouseLeave}
+              className="p-1 hover:bg-slate-100 rounded transition-colors"
+            >
+              <X className="w-4 h-4 text-slate-600" />
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {getEventsForDate(dayjs(hoveredDate)).map((schedule: any) => (
+              <div
+                key={schedule.id}
+                className="p-3 border border-slate-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <h4 className="font-semibold text-slate-800 flex-1">
+                    {schedule.schedule_name}
+                  </h4>
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full font-medium ${getStatusColor(
+                      schedule.status
+                    )}`}
+                  >
+                    {schedule.status.replace("_", " ")}
+                  </span>
+                </div>
+
+                <p className="text-sm text-slate-600 mb-3 line-clamp-2">
+                  {schedule.schedule_description}
+                </p>
+
+                <div className="space-y-1.5 mb-3">
+                  <div className="flex items-center gap-2 text-xs text-slate-600">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>
+                      {dayjs(parseInt(schedule.schedule_start)).format("HH:mm")} -{" "}
+                      {dayjs(parseInt(schedule.schedule_end)).format("HH:mm")}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-slate-600">
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span>{schedule.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-slate-600">
+                    <Users className="w-3.5 h-3.5" />
+                    <span>
+                      {schedule.quota} seats | {schedule.lecturer} lecturer(s)
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => router.push(`/schedule/editor?id=${schedule.id}`)}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                >
+                  <Edit className="w-4 h-4" />
+                  Edit Schedule
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

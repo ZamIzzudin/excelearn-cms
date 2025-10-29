@@ -27,6 +27,7 @@ export default function ScheduleEditorPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const scheduleId = searchParams.get("id");
+  const defaultDate = searchParams.get("date");
 
   const [form] = Form.useForm();
 
@@ -42,8 +43,15 @@ export default function ScheduleEditorPage() {
     if (existingSchedule) {
       form.setFieldsValue(existingSchedule);
       setFormAction(existingSchedule);
+    } else if (defaultDate && !scheduleId) {
+      const initialData = {
+        benefits: [],
+        schedule_date: defaultDate
+      };
+      form.setFieldsValue(initialData);
+      setFormAction(initialData);
     }
-  }, [existingSchedule]);
+  }, [existingSchedule, defaultDate, scheduleId]);
 
   const handleAddBenefit = () => {
     if (newBenefit?.benefit) {
@@ -278,7 +286,7 @@ export default function ScheduleEditorPage() {
                 <button
                   type="button"
                   onClick={handleAddBenefit}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-5 h-5" />
                   Add
@@ -459,7 +467,7 @@ export default function ScheduleEditorPage() {
                 scheduleId ? handleUpdateSchedule() : handleAddSchedule()
               }
               disabled={isPending}
-              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPending ? (
                 <>

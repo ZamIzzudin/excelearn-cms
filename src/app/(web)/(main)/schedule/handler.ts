@@ -65,6 +65,20 @@ export async function CreateService(payload: any) {
     };
   } catch (error: any) {
     console.log(error);
+    return error?.response?.data || { status: 500, message: "Failed to create schedule" };
+  }
+}
+
+export async function BulkCreateService(schedules: any[]) {
+  try {
+    const results = [];
+    for (const schedule of schedules) {
+      const result = await CreateService(schedule);
+      results.push(result);
+    }
+    return results;
+  } catch (error: any) {
+    console.log(error);
     return error?.response?.data;
   }
 }
