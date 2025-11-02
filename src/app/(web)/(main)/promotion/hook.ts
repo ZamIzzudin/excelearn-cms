@@ -2,18 +2,19 @@
 import { useMutation, useQuery, UseQueryResult } from "@tanstack/react-query";
 
 import {
+  PromoListService,
+  CreateService,
   DeleteService,
-  RegisterService,
-  UserListService,
+  ActivatePromoService,
   UpdateService,
 } from "./handler";
 
-export const useUser = (): UseQueryResult<any> => {
+export const usePromo = (): UseQueryResult<any> => {
   const queryResult = useQuery({
-    queryKey: ["user_list"],
+    queryKey: ["promo_list"],
     queryFn: async () => {
       try {
-        const { data, status } = await UserListService();
+        const { data, status } = await PromoListService();
 
         if (status !== 200) throw new Error();
 
@@ -28,16 +29,12 @@ export const useUser = (): UseQueryResult<any> => {
   return queryResult;
 };
 
-export const useRegister = () => {
+export const useCreatePromo = () => {
   return useMutation({
-    mutationKey: ["register_user"],
-    mutationFn: async (payload: {
-      username: string;
-      password: string;
-      display_name: string;
-    }) => {
+    mutationKey: ["create_promo"],
+    mutationFn: async (payload: any) => {
       try {
-        const response: any = await RegisterService(payload);
+        const response: any = await CreateService(payload);
 
         if (response.status !== 201) throw new Error(response.message);
 
@@ -45,23 +42,18 @@ export const useRegister = () => {
           data: response.data,
         };
       } catch (error: any) {
-        throw new Error(error.message || "Success to Register User");
+        throw new Error(error.message || "Success to Create Promo");
       }
     },
   });
 };
 
-export const useUpdate = () => {
+export const useUpdatePromo = () => {
   return useMutation({
-    mutationKey: ["update_user"],
-    mutationFn: async (payload: {
-      _id: string;
-      username: string;
-      password: string;
-      display_name: string;
-    }) => {
+    mutationKey: ["update_promo"],
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
       try {
-        const response: any = await UpdateService(payload);
+        const response: any = await UpdateService(id, data);
 
         if (response.status !== 200) throw new Error(response.message);
 
@@ -69,7 +61,26 @@ export const useUpdate = () => {
           data: response.message,
         };
       } catch (error: any) {
-        throw new Error(error.message || "Success to Update User");
+        throw new Error(error.message || "Success to Update Promo");
+      }
+    },
+  });
+};
+
+export const useActivatePromo = () => {
+  return useMutation({
+    mutationKey: ["update_promo"],
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      try {
+        const response: any = await ActivatePromoService(id, data);
+
+        if (response.status !== 200) throw new Error(response.message);
+
+        return {
+          data: response.message,
+        };
+      } catch (error: any) {
+        throw new Error(error.message || "Success to Update Promo");
       }
     },
   });
@@ -77,7 +88,7 @@ export const useUpdate = () => {
 
 export const useDelete = () => {
   return useMutation({
-    mutationKey: ["delete_user"],
+    mutationKey: ["delete_promo"],
     mutationFn: async (payload: string) => {
       try {
         const response: any = await DeleteService(payload);

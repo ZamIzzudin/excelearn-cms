@@ -17,6 +17,8 @@ import {
 import Image from "next/image";
 import Notification from "@/components/Notification";
 
+import dayjs from "dayjs";
+
 const AVAILABILITY = ["Full Booked", "Open Seat"];
 
 const SKILL_LEVELS = ["Beginner", "Intermediate", "Expert", "All Level"];
@@ -41,12 +43,20 @@ export default function ScheduleEditorPage() {
 
   useEffect(() => {
     if (existingSchedule) {
-      form.setFieldsValue(existingSchedule);
-      setFormAction(existingSchedule);
+      const initalData = {
+        ...existingSchedule,
+        schedule_start: dayjs(existingSchedule.schedule_start, "HH:mm"),
+        schedule_end: dayjs(existingSchedule.schedule_end, "HH:mm"),
+        schedule_date: dayjs(existingSchedule.schedule_date),
+      };
+      console.log(initalData);
+
+      form.setFieldsValue(initalData);
+      setFormAction(initalData);
     } else if (defaultDate && !scheduleId) {
       const initialData = {
         benefits: [],
-        schedule_date: defaultDate
+        schedule_date: dayjs(defaultDate),
       };
       form.setFieldsValue(initialData);
       setFormAction(initialData);
@@ -88,7 +98,10 @@ export default function ScheduleEditorPage() {
       formData.append("language", formAction.language);
       formData.append("quota", formAction.quota);
       formData.append("lecturer", formAction.lecturer);
-      formData.append("is_assestment", formAction.is_assestment);
+      formData.append(
+        "is_assestment",
+        formAction.is_assestment ? "true" : "false"
+      );
 
       formAction.benefits?.forEach((benefit: string) => {
         formData.append("benefits", benefit);
@@ -132,7 +145,10 @@ export default function ScheduleEditorPage() {
       formData.append("language", formAction.language);
       formData.append("quota", formAction.quota);
       formData.append("lecturer", formAction.lecturer);
-      formData.append("is_assestment", formAction.is_assestment);
+      formData.append(
+        "is_assestment",
+        formAction.is_assestment ? "true" : "false"
+      );
 
       formAction.benefits?.forEach((benefit: string) => {
         formData.append("benefits", benefit);
@@ -186,7 +202,6 @@ export default function ScheduleEditorPage() {
             </p>
           </div>
         </div>
-
         <Form
           form={form}
           layout="vertical"
@@ -286,7 +301,7 @@ export default function ScheduleEditorPage() {
                 <button
                   type="button"
                   onClick={handleAddBenefit}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-5 h-5" />
                   Add
@@ -467,7 +482,7 @@ export default function ScheduleEditorPage() {
                 scheduleId ? handleUpdateSchedule() : handleAddSchedule()
               }
               disabled={isPending}
-              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPending ? (
                 <>

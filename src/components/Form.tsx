@@ -29,6 +29,7 @@ type InputFormProps = {
     | "textarea"
     | "select"
     | "date"
+    | "datetime"
     | "file"
     | "switch"
     | "radio"
@@ -134,6 +135,7 @@ const InputForm: React.FC<InputFormProps> = ({
     case "textarea":
       inputElement = (
         <TextArea
+          size={size}
           value={form[name] || undefined}
           onChange={handleChange}
           placeholder={placeholder}
@@ -147,8 +149,11 @@ const InputForm: React.FC<InputFormProps> = ({
     case "time":
       inputElement = (
         <TimePicker
+          size={size}
           value={form[name] || undefined}
-          onChange={handleChange}
+          onChange={(e) => {
+            handleChange(dayjs(e).format("HH:mm"));
+          }}
           placeholder={placeholder}
           disabled={disabled}
           defaultOpenValue={dayjs("00:00", "HH:mm")}
@@ -187,6 +192,21 @@ const InputForm: React.FC<InputFormProps> = ({
           placeholder={placeholder}
           disabled={disabled}
           size={size}
+          variant={variant}
+          className={cn(baseInputClass, "w-full")}
+        />
+      );
+      break;
+
+    case "datetime":
+      inputElement = (
+        <DatePicker
+          value={form[name] || undefined}
+          onChange={(date) => handleChange(date)}
+          placeholder={placeholder}
+          disabled={disabled}
+          size={size}
+          showTime
           variant={variant}
           className={cn(baseInputClass, "w-full")}
         />

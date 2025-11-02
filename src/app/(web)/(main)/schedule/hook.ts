@@ -5,6 +5,7 @@ import {
   ScheduleListService,
   ScheduleDetailService,
   CreateService,
+  CreateBulkService,
   UpdateService,
   DeleteService,
 } from "./handler";
@@ -60,6 +61,25 @@ export const useCreateSchedule = () => {
         };
       } catch (error: any) {
         throw new Error(error.message || "Success to Add Schedule");
+      }
+    },
+  });
+};
+
+export const useCreateBulkSchedule = () => {
+  return useMutation({
+    mutationKey: ["create_bulk_schedule"],
+    mutationFn: async (payload: any) => {
+      try {
+        const response: any = await CreateBulkService(payload);
+
+        if (response.status !== 201) throw new Error(response.message);
+
+        return {
+          data: response.data,
+        };
+      } catch (error: any) {
+        throw new Error(error.message || "Success to Import Schedule");
       }
     },
   });

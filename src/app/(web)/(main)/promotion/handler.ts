@@ -1,5 +1,7 @@
 /** @format */
 
+"use client";
+
 import AxiosClient from "@/lib/axios";
 
 const headers = {
@@ -8,28 +10,9 @@ const headers = {
   },
 };
 
-export async function ScheduleListService() {
+export async function PromoListService() {
   try {
-    const { data: response } = await AxiosClient.get("/schedule/list");
-
-    const { status, message, data } = response;
-
-    if (status !== 200) throw new Error(message);
-
-    return {
-      status,
-      message,
-      data,
-    };
-  } catch (error: any) {
-    console.log(error);
-    return error.message;
-  }
-}
-
-export async function ScheduleDetailService(id: string) {
-  try {
-    const { data: response } = await AxiosClient.get(`/schedule/detail/${id}`);
+    const { data: response } = await AxiosClient.get("/promo/list");
 
     const { status, message, data } = response;
 
@@ -49,7 +32,7 @@ export async function ScheduleDetailService(id: string) {
 export async function CreateService(payload: any) {
   try {
     const { data: response } = await AxiosClient.post(
-      "/schedule/add",
+      "/promo/add",
       payload,
       headers
     );
@@ -63,51 +46,6 @@ export async function CreateService(payload: any) {
       message,
       data,
     };
-  } catch (error: any) {
-    console.log(error);
-    return (
-      error?.response?.data || {
-        status: 500,
-        message: "Failed to create schedule",
-      }
-    );
-  }
-}
-
-export async function CreateBulkService(payload: any) {
-  try {
-    const { data: response } = await AxiosClient.post("/schedule/add-bulk", {
-      data: payload,
-    });
-
-    const { status, message, data } = response;
-
-    if (status !== 201) throw new Error(message);
-
-    return {
-      status,
-      message,
-      data,
-    };
-  } catch (error: any) {
-    console.log(error);
-    return (
-      error?.response?.data || {
-        status: 500,
-        message: "Failed to create schedule",
-      }
-    );
-  }
-}
-
-export async function BulkCreateService(schedules: any[]) {
-  try {
-    const results = [];
-    for (const schedule of schedules) {
-      const result = await CreateService(schedule);
-      results.push(result);
-    }
-    return results;
   } catch (error: any) {
     console.log(error);
     return error?.response?.data;
@@ -117,9 +55,31 @@ export async function BulkCreateService(schedules: any[]) {
 export async function UpdateService(id: string, payload: any) {
   try {
     const { data: response } = await AxiosClient.put(
-      `/schedule/adjust/${id}`,
+      `/promo/adjust/${id}`,
       payload,
       headers
+    );
+
+    const { status, message, data } = response;
+
+    if (status !== 200) throw new Error(message);
+
+    return {
+      status,
+      message,
+      data,
+    };
+  } catch (error: any) {
+    console.log(error);
+    return error?.response?.data;
+  }
+}
+
+export async function ActivatePromoService(id: string, payload: any) {
+  try {
+    const { data: response } = await AxiosClient.put(
+      `/promo/active/${id}`,
+      payload
     );
 
     const { status, message, data } = response;
@@ -140,7 +100,7 @@ export async function UpdateService(id: string, payload: any) {
 export async function DeleteService(payload: string) {
   try {
     const { data: response } = await AxiosClient.delete(
-      `/schedule/takedown/${payload}`
+      `/promo/takedown/${payload}`
     );
 
     const { status, message } = response;

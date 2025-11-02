@@ -16,27 +16,30 @@ import {
   Users,
   Clock,
   X,
+  Trash2,
 } from "lucide-react";
-import { Form } from "antd";
 import dayjs from "dayjs";
 import * as XLSX from "xlsx";
 
 import Notification from "@/components/Notification";
 
-import { useSchedules, useDelete } from "./hook";
-import { CreateService } from "./handler";
+import { useSchedules, useDelete, useCreateBulkSchedule } from "./hook";
 
 export default function SchedulePage() {
   const router = useRouter();
 
+  const [selected, setSelected] = useState(null);
   const [currentDate, setCurrentDate] = useState(dayjs());
   const [hoveredDate, setHoveredDate] = useState<string | null>(null);
   const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
 
-  const [form] = Form.useForm();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: schedules = [], refetch } = useSchedules();
+  const { mutate: createSchedule, isPending: isCreating } =
+    useCreateBulkSchedule();
+
+  const { mutate: deleteSchedule, isPending } = useDelete();
 
   const generateCalendarDays = () => {
     const startOfMonth = currentDate.startOf("month");
@@ -59,7 +62,7 @@ export default function SchedulePage() {
     if (!schedules || schedules.length === 0) return [];
 
     return schedules.filter((schedule: any) => {
-      const scheduleDate = dayjs(parseInt(schedule.schedule_date));
+      const scheduleDate = dayjs(schedule.schedule_date);
       return scheduleDate.isSame(date, "day");
     });
   };
@@ -99,13 +102,13 @@ export default function SchedulePage() {
     const sampleData = [
       "Workshop React Advanced [SAMPLE DATA DONT DELETE]",
       "Learn advanced React patterns and best practices",
-      "2025-11-15",
+      "2025/11/15",
       "09:00",
       "17:00",
       "Jakarta Convention Center",
       "30",
       "2",
-      "true",
+      "y/n",
       "Certificate|Lunch|Materials",
       "BEGINNER",
       "INDONESIA",
@@ -179,23 +182,28 @@ export default function SchedulePage() {
 
                 columnMapping.forEach((field, colIndex) => {
                   const value = row[colIndex];
+                  console.log(field, value);
                   if (value !== undefined && value !== null && value !== "") {
-                    if (field === "schedule_date" && typeof value === "string") {
-                      const dateTimestamp = dayjs(value).valueOf().toString();
+                    if (
+                      field === "schedule_date" &&
+                      typeof value === "number"
+                    ) {
+                      const EXCEL_DAYS_DIFF = 25569;
+                      const totalDays = value - EXCEL_DAYS_DIFF;
+                      const milliseconds = totalDays * 24 * 60 * 60 * 1000;
+
+                      const dateTimestamp = dayjs(milliseconds)
+                        .valueOf()
+                        .toString();
                       scheduleData[field] = dateTimestamp;
-                    } else if (field === "schedule_start" || field === "schedule_end") {
-                      const [hours, minutes] = String(value).split(":");
-                      const timeDate = dayjs()
-                        .hour(parseInt(hours))
-                        .minute(parseInt(minutes))
-                        .second(0);
-                      scheduleData[field] = timeDate.valueOf().toString();
                     } else if (field === "quota" || field === "lecturer") {
                       scheduleData[field] = parseInt(value) || 0;
                     } else if (field === "is_assestment") {
-                      scheduleData[field] = String(value).toLowerCase() === "true";
+                      scheduleData[field] = String(value).toLowerCase() === "y";
                     } else if (field === "benefits") {
-                      scheduleData[field] = String(value).split("|").map((b: string) => b.trim());
+                      scheduleData[field] = String(value)
+                        .split("|")
+                        .map((b: string) => b.trim());
                     } else {
                       scheduleData[field] = String(value).trim();
                     }
@@ -207,38 +215,18 @@ export default function SchedulePage() {
               .filter((schedule: any) => schedule.schedule_name);
 
             if (newSchedules.length > 0) {
-              let successCount = 0;
-              let failCount = 0;
-
-              for (const schedule of newSchedules) {
-                try {
-                  const formData = new FormData();
-                  Object.keys(schedule).forEach((key) => {
-                    if (key === "benefits") {
-                      schedule[key].forEach((benefit: string) => {
-                        formData.append("benefits", benefit);
-                      });
-                    } else {
-                      formData.append(key, schedule[key]);
-                    }
-                  });
-
-                  const response = await CreateService(formData);
-                  if (response.status === 201) {
-                    successCount++;
-                  } else {
-                    failCount++;
-                  }
-                } catch (error) {
-                  failCount++;
-                }
-              }
-
-              refetch();
-              Notification(
-                "success",
-                `Successfully imported ${successCount} schedules${failCount > 0 ? ` (${failCount} failed)` : ""}`
-              );
+              createSchedule(newSchedules, {
+                onSuccess: () => {
+                  Notification(
+                    "success",
+                    `Success Import ${newSchedules.length} Data`
+                  );
+                  refetch();
+                },
+                onError: () => {
+                  Notification("error", "Failed to Import Data");
+                },
+              });
             } else {
               Notification(
                 "error",
@@ -284,7 +272,6 @@ export default function SchedulePage() {
     }
   };
 
-
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -319,7 +306,7 @@ export default function SchedulePage() {
           />
           <button
             onClick={() => router.push("/schedule/editor")}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
           >
             <Plus className="w-5 h-5" />
             <span className="hidden sm:inline">Add Schedule</span>
@@ -387,21 +374,25 @@ export default function SchedulePage() {
                     isCurrentMonth
                       ? "border-slate-200"
                       : "border-slate-100 opacity-50"
-                  } ${isToday ? "bg-blue-50 border-blue-200" : ""} ${
-                    hasEvents ? "hover:shadow-md hover:border-blue-300" : "hover:bg-slate-50"
+                  } ${isToday ? "bg-indigo-50 border-indigo-200" : ""} ${
+                    hasEvents
+                      ? "hover:shadow-md hover:border-indigo-300"
+                      : "hover:bg-slate-50"
                   }`}
                   onMouseEnter={(e) => handleMouseEnter(day, e)}
-                  onMouseLeave={handleMouseLeave}
+                  // onMouseLeave={() => setTimeout(handleMouseLeave, 1500)}
                   onClick={() => {
                     if (!hasEvents) {
-                      router.push(`/schedule/editor?date=${day.format("YYYY-MM-DD")}`);
+                      router.push(
+                        `/schedule/editor?date=${day.format("YYYY-MM-DD")}`
+                      );
                     }
                   }}
                 >
                   <div
                     className={`text-sm font-medium mb-2 ${
                       isToday
-                        ? "text-blue-600"
+                        ? "text-indigo-600"
                         : isCurrentMonth
                         ? "text-slate-800"
                         : "text-slate-400"
@@ -413,13 +404,15 @@ export default function SchedulePage() {
                   <div className="space-y-1">
                     {events.slice(0, 3).map((event: any) => (
                       <div
-                        key={event.id}
-                        className="text-xs p-1.5 rounded bg-blue-100 text-blue-700 truncate cursor-pointer hover:bg-blue-200 transition-colors"
+                        key={event._id}
+                        className="text-xs p-1.5 rounded bg-indigo-100 text-indigo-700 truncate cursor-pointer hover:bg-indigo-200 transition-colors"
                         title={event.schedule_name}
                       >
                         <div className="flex items-center gap-1">
-                          <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                          <span className="truncate font-medium">{event.schedule_name}</span>
+                          <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                          <span className="truncate font-medium">
+                            {event.schedule_name}
+                          </span>
                         </div>
                       </div>
                     ))}
@@ -438,10 +431,10 @@ export default function SchedulePage() {
 
       {hoveredDate && (
         <div
-          className="fixed z-50 bg-white rounded-xl shadow-2xl border border-slate-200 p-4 w-96 max-h-[500px] overflow-y-auto"
+          className="absolute z-50 bg-white rounded-xl shadow-2xl border border-slate-200 p-4 w-96 max-h-[500px] overflow-y-auto"
           style={{
-            left: `${Math.min(popupPosition.x, window.innerWidth - 400)}px`,
-            top: `${popupPosition.y + 10}px`,
+            left: `${popupPosition.x / 1.25}px`,
+            top: `${popupPosition.y}px`,
           }}
           onMouseEnter={() => setHoveredDate(hoveredDate)}
           onMouseLeave={handleMouseLeave}
@@ -462,7 +455,7 @@ export default function SchedulePage() {
             {getEventsForDate(dayjs(hoveredDate)).map((schedule: any) => (
               <div
                 key={schedule.id}
-                className="p-3 border border-slate-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all"
+                className="p-3 border border-slate-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 transition-all"
               >
                 <div className="flex items-start justify-between mb-2">
                   <h4 className="font-semibold text-slate-800 flex-1">
@@ -485,8 +478,7 @@ export default function SchedulePage() {
                   <div className="flex items-center gap-2 text-xs text-slate-600">
                     <Clock className="w-3.5 h-3.5" />
                     <span>
-                      {dayjs(parseInt(schedule.schedule_start)).format("HH:mm")} -{" "}
-                      {dayjs(parseInt(schedule.schedule_end)).format("HH:mm")}
+                      {schedule.schedule_start} - {schedule.schedule_end}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-slate-600">
@@ -501,18 +493,72 @@ export default function SchedulePage() {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => router.push(`/schedule/editor?id=${schedule.id}`)}
-                  className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                >
-                  <Edit className="w-4 h-4" />
-                  Edit Schedule
-                </button>
+                <div className="flex gap-3 mt-5">
+                  <button
+                    onClick={() => setSelected(schedule._id)}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 border text-indigo-600 border-indigo-600 rounded-lg hover:bg-indigo-200 transition-colors text-sm font-medium"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete
+                  </button>
+                  <button
+                    onClick={() =>
+                      router.push(`/schedule/editor?id=${schedule._id}`)
+                    }
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                  >
+                    <Edit className="w-4 h-4" />
+                    Edit
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         </div>
       )}
+
+      {selected ? (
+        <div className="fixed bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 top-0 right-0 left-0 bottom-0 m-0">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md text-center">
+            <h2 className="text-xl font-bold text-slate-800 mb-6">
+              Delete Schedule
+            </h2>
+            <p>Are you sure want to delete this schedule?</p>
+            <div className="flex gap-5 mt-8 justify-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setSelected(null);
+                }}
+                className="flex items-center justify-center gap-2 px-10 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                disabled={isPending}
+              >
+                No
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  deleteSchedule(selected, {
+                    onSuccess: () => {
+                      Notification("success", "Success Delete Data");
+                      refetch();
+                      setSelected(null);
+                    },
+                    onError: () => {
+                      Notification("error", "Failed to Delete Data");
+                      setSelected(null);
+                    },
+                  });
+                }}
+                className="px-10 py-3 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isPending}
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

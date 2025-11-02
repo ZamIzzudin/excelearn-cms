@@ -49,7 +49,7 @@ export default function ProductPage() {
             <h3 className="text-lg font-semibold text-slate-800">
               {product.product_name}
             </h3>
-            <span className="px-3 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-full">
+            <span className="px-3 py-1 text-xs font-medium bg-indigo-50 text-indigo-700 rounded-full">
               {product.product_category?.replace("_", " ")}
             </span>
           </div>
@@ -76,7 +76,7 @@ export default function ProductPage() {
           <div className="flex gap-2 pt-4 border-t border-slate-200">
             <button
               onClick={() => router.push(`/product/editor?id=${product._id}`)}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors"
             >
               <Edit className="w-4 h-4" />
               Edit
@@ -119,7 +119,7 @@ export default function ProductPage() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
             <input
               type="text"
-              placeholder="Search pages..."
+              placeholder="Search product..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -166,13 +166,13 @@ export default function ProductPage() {
               Delete Product
             </h2>
             <p>Are you sure want to delete this product?</p>
-            <div className="flex gap-3 mt-5 justify-center">
+            <div className="flex gap-5 mt-8 justify-center">
               <button
                 type="button"
                 onClick={() => {
                   setSelected(null);
                 }}
-                className="flex items-center justify-center gap-2 px-8 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                className="flex items-center justify-center gap-2 px-10 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                 disabled={isPending}
               >
                 No
@@ -192,7 +192,7 @@ export default function ProductPage() {
                     },
                   });
                 }}
-                className="px-8 py-3 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-10 py-3 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={isPending}
               >
                 Yes
