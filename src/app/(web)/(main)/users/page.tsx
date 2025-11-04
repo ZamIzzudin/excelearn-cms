@@ -97,7 +97,12 @@ export default function UsersPage() {
     }
   };
 
-  if (!state.user || state.user.role !== "SUPERADMIN") return router.push("/");
+  if (!state.user || state.user.role !== "SUPERADMIN") {
+    if (typeof window !== "undefined") {
+      router.push("/");
+    }
+    return null;
+  }
 
   return (
     <div className="flex flex-col gap-5">
