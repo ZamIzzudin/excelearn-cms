@@ -7,14 +7,14 @@ import { Form } from "antd";
 import { Save, TrendingUp } from "lucide-react";
 import InputForm from "@/components/Form";
 import Notification from "@/components/Notification";
-import { useStatistics, useUpdateStatistics } from "../hook";
+import { useStatistic, useUpdateStatistic } from "../hook";
 
 export default function StatisticsTab() {
   const [form] = Form.useForm();
   const [formData, setFormData] = useState<any>({});
 
-  const { data: statistics, isLoading, refetch } = useStatistics();
-  const { mutate: updateStatistics, isPending } = useUpdateStatistics();
+  const { data: statistics, isLoading, refetch } = useStatistic();
+  const { mutate: update, isPending } = useUpdateStatistic();
 
   useEffect(() => {
     if (statistics) {
@@ -27,7 +27,7 @@ export default function StatisticsTab() {
     try {
       await form.validateFields();
 
-      updateStatistics(formData, {
+      update(formData, {
         onSuccess: () => {
           Notification("success", "Statistics updated successfully");
           refetch();
@@ -54,16 +54,9 @@ export default function StatisticsTab() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
-        <TrendingUp className="w-6 h-6 text-blue-600" />
-        <div>
-          <h3 className="font-semibold text-blue-900">Website Statistics</h3>
-          <p className="text-sm text-blue-700">
-            Update key statistics displayed on your website
-          </p>
-        </div>
+      <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200 w-fit">
+        <h3 className="font-semibold text-blue-900">Website Statistics</h3>
       </div>
-
       <Form form={form} layout="vertical" requiredMark={false}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputForm

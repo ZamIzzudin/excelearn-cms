@@ -3,17 +3,16 @@
 "use client";
 
 import { useState } from "react";
-import { BarChart, Users, MessageSquare, Globe } from "lucide-react";
 import StatisticsTab from "./tabs/StatisticsTab";
 import PartnersTab from "./tabs/PartnersTab";
 import TestimonialsTab from "./tabs/TestimonialsTab";
 import MetadataTab from "./tabs/MetadataTab";
 
 const tabs = [
-  { id: "statistics", name: "Statistics", icon: BarChart },
-  { id: "partners", name: "Partners", icon: Users },
-  { id: "testimonials", name: "Testimonials", icon: MessageSquare },
-  { id: "metadata", name: "Metadata", icon: Globe },
+  { id: "statistics", name: "Statistics" },
+  { id: "partners", name: "Partners" },
+  { id: "testimonials", name: "Testimonials" },
+  { id: "metadata", name: "Metadata" },
 ];
 
 export default function ContentPage() {
@@ -36,18 +35,16 @@ export default function ContentPage() {
         <div className="border-b border-slate-200">
           <div className="flex overflow-x-auto">
             {tabs.map((tab) => {
-              const Icon = tab.icon;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors whitespace-nowrap ${
+                  className={`flex items-center border-b-2 border-transparent gap-2 px-6 py-4 font-medium transition-colors whitespace-nowrap duration-150 ${
                     activeTab === tab.id
-                      ? "text-blue-600 border-b-2 border-blue-600"
+                      ? "text-blue-600  !border-blue-600 font-semibold"
                       : "text-slate-600 hover:text-slate-800"
                   }`}
                 >
-                  <Icon className="w-5 h-5" />
                   {tab.name}
                 </button>
               );

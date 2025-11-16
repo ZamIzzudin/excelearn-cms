@@ -5,6 +5,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Package, Plus, Search, Filter, Edit, Trash2 } from "lucide-react";
+import { Tooltip } from "antd";
 
 import Notification from "@/components/Notification";
 
@@ -46,9 +47,11 @@ export default function ProductPage() {
 
         <div className="p-6">
           <div className="flex items-start justify-between mb-3">
-            <h3 className="text-lg font-semibold text-slate-800">
-              {product.product_name}
-            </h3>
+            <Tooltip placement="top" title={product?.product_name || "-"}>
+              <h3 className="text-lg font-semibold text-slate-800 truncate max-w-[60%]">
+                {product.product_name}
+              </h3>
+            </Tooltip>
             <span className="px-3 py-1 text-xs font-medium bg-indigo-50 text-indigo-700 rounded-full">
               {product.product_category?.replace("_", " ")}
             </span>
@@ -62,7 +65,7 @@ export default function ProductPage() {
             <div className="flex justify-between">
               <span>Skill Level:</span>
               <span className="font-medium capitalize">
-                {product.skill_level.toLowerCase()}
+                {product.skill_level.toLowerCase()?.replace("_", " ")}
               </span>
             </div>
             <div className="flex justify-between">

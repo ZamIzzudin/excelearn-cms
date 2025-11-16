@@ -140,7 +140,7 @@ export default function PagesPage() {
             {/* Thumbnail */}
             <div className="relative h-48 bg-slate-100">
               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all flex items-center justify-center">
-                <h1 className="font-[600] text-gray-500">{page.title}</h1>
+                <h1 className="font-semibold text-gray-500">{page.title}</h1>
                 <button
                   onClick={() => handleEditPage(page)}
                   className="opacity-0 group-hover:opacity-100 bg-white text-slate-800 px-4 py-2 rounded-lg font-medium transition-all transform scale-95 group-hover:scale-100 absolute"

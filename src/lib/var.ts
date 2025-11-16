@@ -23,7 +23,7 @@ export const ValidPath = [
   "promotion",
 ];
 export const DefaultMenu = [
-  { id: 1, text: "Dashboard", icon: Home, href: "/" },
+  { id: 1, text: "Home", icon: Home, href: "/" },
   { id: 2, text: "Product", icon: Package, href: "/product" },
   { id: 3, text: "Schedule", icon: BarChart3, href: "/schedule" },
   { id: 4, text: "Promotion", icon: Megaphone, href: "/promotion" },
@@ -31,7 +31,7 @@ export const DefaultMenu = [
   { id: 6, text: "Pages", icon: Layers, href: "/pages" },
 ];
 export const SuperMenu = [
-  { id: 1, text: "Dashboard", icon: Home, href: "/" },
+  { id: 1, text: "Home", icon: Home, href: "/" },
   { id: 2, text: "Users", icon: Users, href: "/users" },
   { id: 3, text: "Product", icon: Package, href: "/product" },
   { id: 4, text: "Schedule", icon: BarChart3, href: "/schedule" },
@@ -42,3 +42,18 @@ export const SuperMenu = [
 
 export const LocalToken = "exc_auth_token";
 export const LocalRefreshToken = "exc_refresh_token";
+
+export const colors = [
+  "#00AEEF", // Cyan
+  "#D0229F", // Magenta
+  "#7C3AED", // Purple
+  "#F59E0B", // Orange
+  "#EF4444", // Red
+  "#10B981", // Green
+  "#3B82F6", // Blue
+  "#EC4899", // Pink
+  "#8B5CF6", // Violet
+  "#14B8A6", // Teal
+  "#F97316", // Deep Orange
+  "#06B6D4", // Sky Blue
+];

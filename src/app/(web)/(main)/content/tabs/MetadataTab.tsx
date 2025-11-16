@@ -7,22 +7,22 @@ import { Form } from "antd";
 import { Save, Globe, Tag, Plus, X } from "lucide-react";
 import InputForm from "@/components/Form";
 import Notification from "@/components/Notification";
-import { useMetadata, useUpdateMetadata } from "../hook";
+// import { useMetadata, useUpdateMetadata } from "../hook";
 
 export default function MetadataTab() {
   const [form] = Form.useForm();
   const [formData, setFormData] = useState<any>({ site_keywords: [] });
   const [newKeyword, setNewKeyword] = useState("");
 
-  const { data: metadata, isLoading, refetch } = useMetadata();
-  const { mutate: updateMetadata, isPending } = useUpdateMetadata();
+  // const { data: metadata, isLoading, refetch } = useMetadata();
+  // const { mutate: updateMetadata, isPending } = useUpdateMetadata();
 
-  useEffect(() => {
-    if (metadata) {
-      form.setFieldsValue(metadata);
-      setFormData(metadata);
-    }
-  }, [metadata, form]);
+  // useEffect(() => {
+  //   if (metadata) {
+  //     form.setFieldsValue(metadata);
+  //     setFormData(metadata);
+  //   }
+  // }, [metadata, form]);
 
   const handleAddKeyword = () => {
     if (newKeyword.trim()) {
@@ -41,43 +41,39 @@ export default function MetadataTab() {
     setFormData({ ...formData, site_keywords: keywords });
   };
 
-  const handleSubmit = async () => {
-    try {
-      await form.validateFields();
+  // const handleSubmit = async () => {
+  //   try {
+  //     await form.validateFields();
 
-      updateMetadata(formData, {
-        onSuccess: () => {
-          Notification("success", "Metadata updated successfully");
-          refetch();
-        },
-        onError: (error: any) => {
-          Notification("error", error.message || "Failed to update metadata");
-        },
-      });
-    } catch (error) {
-      Notification("error", "Please fill in all required fields");
-    }
-  };
+  //     updateMetadata(formData, {
+  //       onSuccess: () => {
+  //         Notification("success", "Metadata updated successfully");
+  //         refetch();
+  //       },
+  //       onError: (error: any) => {
+  //         Notification("error", error.message || "Failed to update metadata");
+  //       },
+  //     });
+  //   } catch (error) {
+  //     Notification("error", "Please fill in all required fields");
+  //   }
+  // };
 
-  if (isLoading) {
-    return (
-      <div className="animate-pulse space-y-4">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="h-20 bg-slate-100 rounded-xl"></div>
-        ))}
-      </div>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <div className="animate-pulse space-y-4">
+  //       {[1, 2, 3, 4, 5].map((i) => (
+  //         <div key={i} className="h-20 bg-slate-100 rounded-xl"></div>
+  //       ))}
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
-        <Globe className="w-6 h-6 text-blue-600" />
         <div>
           <h3 className="font-semibold text-blue-900">Website Metadata</h3>
-          <p className="text-sm text-blue-700">
-            Configure SEO and social media metadata
-          </p>
         </div>
       </div>
 
@@ -135,26 +131,29 @@ export default function MetadataTab() {
                     Add
                   </button>
                 </div>
-                {formData.site_keywords && formData.site_keywords.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {formData.site_keywords.map((keyword: string, index: number) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm"
-                      >
-                        <Tag className="w-3 h-3" />
-                        {keyword}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveKeyword(index)}
-                          className="hover:text-red-600 transition-colors"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
+                {formData.site_keywords &&
+                  formData.site_keywords.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {formData.site_keywords.map(
+                        (keyword: string, index: number) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm"
+                          >
+                            <Tag className="w-3 h-3" />
+                            {keyword}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveKeyword(index)}
+                              className="hover:text-red-600 transition-colors"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        )
+                      )}
+                    </div>
+                  )}
               </div>
 
               <InputForm
@@ -247,7 +246,10 @@ export default function MetadataTab() {
                 setForm={setFormData}
                 options={[
                   { label: "Summary", value: "summary" },
-                  { label: "Summary Large Image", value: "summary_large_image" },
+                  {
+                    label: "Summary Large Image",
+                    value: "summary_large_image",
+                  },
                   { label: "App", value: "app" },
                   { label: "Player", value: "player" },
                 ]}
@@ -296,7 +298,7 @@ export default function MetadataTab() {
             </div>
           </div>
         </div>
-
+        {/* 
         <div className="flex justify-end mt-6 pt-6 border-t border-slate-200">
           <button
             type="button"
@@ -316,7 +318,7 @@ export default function MetadataTab() {
               </>
             )}
           </button>
-        </div>
+        </div> */}
       </Form>
     </div>
   );

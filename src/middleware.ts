@@ -3,11 +3,9 @@
 "use server";
 
 import { NextResponse, NextRequest } from "next/server";
-// import type { NextRequest } from "next/server";
 
 import { LocalToken, ValidPath } from "./lib/var";
 
-// import { NeedAuthURL } from "./lib/var";
 import { lastPathname } from "./lib/utils";
 
 export default async function middleware(req: NextRequest) {
