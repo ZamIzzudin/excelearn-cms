@@ -6,10 +6,11 @@ import { useState } from "react";
 import { useGlobalState } from "@/lib/middleware";
 import { useRouter } from "next/navigation";
 
-import { Search, Plus, Filter, Edit, Trash2 } from "lucide-react";
+import { Search, Plus, Edit, Trash2 } from "lucide-react";
 import InputForm from "@/components/Form";
 import Notification from "@/components/Notification";
 import { Form } from "antd";
+import { useDebounce } from "@/hooks/useDebounce";
 
 import dayjs from "dayjs";
 import { useUser, useRegister, useDelete, useUpdate } from "./hook";
@@ -19,18 +20,17 @@ export default function UsersPage() {
   const [show, setShow] = useState<"NONE" | "ADD" | "UPDATE">("NONE");
   const [formAction, setFormAction] = useState<any>();
 
+  const debouncedSearchName = useDebounce(searchTerm, 500);
+
   const router = useRouter();
   const { state } = useGlobalState();
   const [form] = Form.useForm();
 
-  const { data = [], isLoading, refetch } = useUser();
+  // Use debounced search in the query
+  const { data = [], isLoading, refetch } = useUser(debouncedSearchName);
   const { mutate: registerUser, isPending: registerPending } = useRegister();
   const { mutate: updateUser, isPending: updatePending } = useUpdate();
   const { mutate: deleteUser, isPending: deletePending } = useDelete();
-
-  const filteredUsers = data?.filter((user: any) =>
-    user.display_name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const handleAddUser = async () => {
     try {
@@ -85,7 +85,7 @@ export default function UsersPage() {
     try {
       deleteUser(id, {
         onSuccess: () => {
-          Notification("success", "Success to Register User");
+          Notification("success", "Success to Delete User");
           refetch();
         },
         onError: () => {
@@ -130,17 +130,27 @@ export default function UsersPage() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
             <input
               type="text"
-              placeholder="Search users..."
+              placeholder="Search by username or name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            )}
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
-            <Filter className="w-5 h-5 text-slate-500" />
-            Filter
-          </button>
         </div>
+        {debouncedSearchName && (
+          <p className="text-sm text-slate-500 mt-2">
+            Searching for:{" "}
+            <span className="font-medium">{debouncedSearchName}</span>
+          </p>
+        )}
       </div>
 
       {/* Users Table */}
@@ -158,7 +168,6 @@ export default function UsersPage() {
                   <th className="text-left py-4 px-6 font-medium text-slate-700">
                     Role
                   </th>
-
                   <th className="text-left py-4 px-6 font-medium text-slate-700">
                     Created At
                   </th>
@@ -168,75 +177,83 @@ export default function UsersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {filteredUsers?.map((user: any) => (
-                  <tr
-                    key={user._id}
-                    className="hover:bg-slate-50 transition-colors"
-                  >
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                          <span className="text-indigo-600 font-medium text-sm">
-                            {user?.display_name
-                              ? user?.display_name[0]?.toUpperCase()
-                              : "U"}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="font-medium text-slate-800">
-                            {user.display_name}
-                          </p>
-                          <p className="text-sm text-slate-500 capitalize">
-                            {user?.username?.toLowerCase() || "-"}
-                          </p>
-                        </div>
-                      </div>
+                {data.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="py-8 text-center text-slate-500">
+                      {debouncedSearchName
+                        ? "No users found matching your search"
+                        : "No users found"}
                     </td>
-                    <td className="py-4 px-6">
-                      <span
-                        className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${
-                          user.role === "Admin"
-                            ? "bg-purple-100 text-purple-700"
-                            : user.role === "SUPERADMIN"
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-gray-100 text-gray-700"
-                        }`}
-                      >
-                        {user?.role}
-                      </span>
-                    </td>
-
-                    <td className="py-4 px-6 text-slate-600">
-                      {dayjs(user.created_at).format("DD MMMM YYYY")}
-                    </td>
-
-                    {user?.role !== "SUPERADMIN" ? (
+                  </tr>
+                ) : (
+                  data.map((user: any) => (
+                    <tr
+                      key={user._id}
+                      className="hover:bg-slate-50 transition-colors"
+                    >
                       <td className="py-4 px-6">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => {
-                              setShow("UPDATE");
-                              setFormAction(user);
-                              form.setFieldsValue(user);
-                            }}
-                            className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                          >
-                            <Edit className="w-4 h-4 text-slate-500" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteUser(user?._id)}
-                            type="button"
-                            className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4 text-red-500" />
-                          </button>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                            <span className="text-indigo-600 font-medium text-sm">
+                              {user?.display_name
+                                ? user?.display_name[0]?.toUpperCase()
+                                : "U"}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-medium text-slate-800">
+                              {user.display_name}
+                            </p>
+                            <p className="text-sm text-slate-500 capitalize">
+                              {user?.username?.toLowerCase() || "-"}
+                            </p>
+                          </div>
                         </div>
                       </td>
-                    ) : (
-                      <td className="py-4 px-6" />
-                    )}
-                  </tr>
-                ))}
+                      <td className="py-4 px-6">
+                        <span
+                          className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${
+                            user.role === "Admin"
+                              ? "bg-purple-100 text-purple-700"
+                              : user.role === "SUPERADMIN"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          {user?.role}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6 text-slate-600">
+                        {dayjs(user.created_at).format("DD MMMM YYYY")}
+                      </td>
+                      {user?.role !== "SUPERADMIN" ? (
+                        <td className="py-4 px-6">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => {
+                                setShow("UPDATE");
+                                setFormAction(user);
+                                form.setFieldsValue(user);
+                              }}
+                              className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                            >
+                              <Edit className="w-4 h-4 text-slate-500" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteUser(user?._id)}
+                              type="button"
+                              className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4 text-red-500" />
+                            </button>
+                          </div>
+                        </td>
+                      ) : (
+                        <td className="py-4 px-6" />
+                      )}
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

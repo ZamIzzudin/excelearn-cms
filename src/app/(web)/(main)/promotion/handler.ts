@@ -10,25 +10,56 @@ const headers = {
   },
 };
 
-export async function PromoListService() {
-  try {
-    const { data: response } = await AxiosClient.get("/promo/list");
+interface PromoListParams {
+  page?: number;
+  promo_name?: string;
+  is_active?: boolean | string;
+  sort_order?: string;
+}
 
-    const { status, message, data } = response;
+export async function PromoListService(params: PromoListParams = {}) {
+  try {
+    // Build query string
+    const queryParams = new URLSearchParams();
+
+    if (params.page) {
+      queryParams.append("page", params.page.toString());
+    }
+
+    if (params.promo_name) {
+      queryParams.append("promo_name", params.promo_name);
+    }
+
+    if (params.is_active !== undefined && params.is_active !== "") {
+      queryParams.append("is_active", params.is_active.toString());
+    }
+
+    if (params.sort_order) {
+      queryParams.append("sort_order", params.sort_order);
+    }
+
+    const queryString = queryParams.toString();
+    const url = `/promo/list${queryString ? `?${queryString}` : ""}`;
+
+    const { data: response } = await AxiosClient.get(url);
+
+    const { status, message, data, pagination } = response;
 
     if (status !== 200) throw new Error(message);
 
     return {
       status,
       message,
-      data,
+      data: {
+        data,
+        pagination,
+      },
     };
   } catch (error: any) {
     console.log(error);
-    return error.message;
+    throw error;
   }
 }
-
 export async function CreateService(payload: any) {
   try {
     const { data: response } = await AxiosClient.post(

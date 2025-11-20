@@ -21,9 +21,12 @@ import {
   AlignCenter,
   AlignRight,
   GripVertical,
+  Loader2,
 } from "lucide-react";
+import { usePageDetail, useCreatePage, useUpdatePage } from "../hook";
+import Notification from "@/components/Notification";
 
-// Komponen yang tersedia untuk drag & drop
+// Available components for drag & drop
 const availableComponents = [
   {
     id: "text",
@@ -109,90 +112,32 @@ const availableComponents = [
   },
 ];
 
-// Dummy data untuk halaman yang sedang diedit
-const dummyPageData = {
-  id: 1,
-  title: "Homepage",
-  slug: "homepage",
-  components: [
-    {
-      id: "comp-1",
-      type: "heading",
-      gridColumn: 12,
-      order: 1,
-      props: {
-        content: "Welcome to Our Website",
-        level: "h1",
-        fontSize: 48,
-        fontWeight: "bold",
-        color: "#1F2937",
-        backgroundColor: "transparent",
-        padding: 32,
-        textAlign: "center",
-        backgroundImage: null,
-      },
-    },
-    {
-      id: "comp-2",
-      type: "text",
-      gridColumn: 8,
-      order: 2,
-      props: {
-        content:
-          "This is a sample paragraph text that demonstrates how the page builder works. You can edit this text and customize its appearance.",
-        fontSize: 18,
-        fontWeight: "normal",
-        color: "#4B5563",
-        backgroundColor: "transparent",
-        padding: 24,
-        textAlign: "center",
-        backgroundImage: null,
-      },
-    },
-    {
-      id: "comp-3",
-      type: "image",
-      gridColumn: 6,
-      order: 3,
-      props: {
-        src: "https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&cs=tinysrgb&w=800",
-        alt: "Hero image",
-        width: "100%",
-        height: "300px",
-        borderRadius: 12,
-        objectFit: "cover",
-        backgroundImage: null,
-      },
-    },
-    {
-      id: "comp-4",
-      type: "button",
-      gridColumn: 4,
-      order: 4,
-      props: {
-        text: "Get Started",
-        backgroundColor: "#3B82F6",
-        color: "#FFFFFF",
-        padding: "16px 32px",
-        borderRadius: 8,
-        fontSize: 18,
-        fontWeight: "semibold",
-        border: "none",
-        cursor: "pointer",
-        textAlign: "center",
-        backgroundImage: null,
-      },
-    },
-  ],
-  uploadedImages: [], // Storage untuk gambar yang diupload
-};
-
 export default function PageEditor() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bgImageInputRef = useRef<HTMLInputElement>(null);
 
-  const [pageData, setPageData] = useState(dummyPageData);
+  const pageId = searchParams.get("id");
+  const isNew = searchParams.get("new") === "true";
+  const titleParam = searchParams.get("title");
+  const slugParam = searchParams.get("slug");
+
+  // Hooks
+  const { data: pageDetailData, isLoading: isLoadingDetail } =
+    usePageDetail(pageId);
+  const createPage = useCreatePage();
+  const updatePage = useUpdatePage();
+
+  const [pageData, setPageData] = useState<any>({
+    id: null,
+    name: titleParam || "",
+    path: slugParam || "",
+    status: "DRAFT",
+    template: [],
+    uploadedImages: [],
+  });
+
   const [selectedComponent, setSelectedComponent] = useState<string | null>(
     null
   );
@@ -216,40 +161,78 @@ export default function PageEditor() {
     robotsIndex: "index,follow",
   });
 
+  // Load existing page data
   useEffect(() => {
-    const title = searchParams.get("title");
-    const slug = searchParams.get("slug");
-    const isNew = searchParams.get("new");
+    if (pageDetailData) {
+      // Process template to handle server image format
+      const processedTemplate = (pageDetailData.template || []).map(
+        (comp: any) => {
+          const processedComp = { ...comp };
 
-    if (isNew && title && slug) {
+          // Convert server background image format to URL string for editor
+          if (comp.props?.backgroundImage?.url) {
+            processedComp.props = {
+              ...comp.props,
+              backgroundImage: comp.props.backgroundImage.url,
+              backgroundImageData: comp.props.backgroundImage, // Keep original for updates
+            };
+          }
+
+          // Image components already have URL in src, no conversion needed
+
+          return processedComp;
+        }
+      );
+
       setPageData({
-        id: Date.now(),
-        title,
-        slug,
-        components: [],
+        id: pageDetailData._id,
+        name: pageDetailData.name,
+        path: pageDetailData.path,
+        status: pageDetailData.status,
+        template: processedTemplate,
+        uploadedImages: [],
+      });
+
+      if (pageDetailData.metadata) {
+        setMetadata({
+          metaTitle: pageDetailData.metadata.metaTitle || "",
+          metaDescription: pageDetailData.metadata.metaDescription || "",
+          metaKeywords: pageDetailData.metadata.metaKeywords || "",
+          ogTitle: pageDetailData.metadata.ogTitle || "",
+          ogDescription: pageDetailData.metadata.ogDescription || "",
+          ogImage: pageDetailData.metadata.ogImage || "",
+          canonicalUrl: pageDetailData.metadata.canonicalUrl || "",
+          robotsIndex: pageDetailData.metadata.robotsIndex || "index,follow",
+        });
+      }
+    }
+  }, [pageDetailData]);
+
+  // Set initial data for new page
+  useEffect(() => {
+    if (isNew && titleParam && slugParam) {
+      setPageData({
+        id: null,
+        name: titleParam,
+        path: slugParam,
+        status: "DRAFT",
+        template: [],
         uploadedImages: [],
       });
     }
-  }, [searchParams]);
+  }, [isNew, titleParam, slugParam]);
 
-  // Improved responsive grid calculation
   const getResponsiveColumns = (originalColumns: number) => {
     switch (viewMode) {
       case "mobile":
-        // Mobile: komponen dengan lebar > 6 menjadi full width, sisanya tetap
         return originalColumns > 6 ? 12 : originalColumns;
       case "tablet":
-        // Tablet: komponen dengan lebar > 8 menjadi full width, sisanya disesuaikan
         if (originalColumns > 8) return 12;
         if (originalColumns <= 4) return originalColumns;
         return Math.min(originalColumns + 2, 12);
       default:
         return originalColumns;
     }
-  };
-
-  const getGridClass = () => {
-    return "grid-cols-12"; // Always use 12-column grid
   };
 
   const getViewportClass = () => {
@@ -276,18 +259,17 @@ export default function PageEditor() {
     e.preventDefault();
 
     if (draggedComponent) {
-      // Adding new component from library
       const newComponent = {
         id: `comp-${Date.now()}`,
         type: draggedComponent.id,
         gridColumn: 12,
-        order: pageData.components.length + 1,
+        order: pageData.template.length + 1,
         props: { ...draggedComponent.defaultProps },
       };
 
-      setPageData((prev) => ({
+      setPageData((prev: any) => ({
         ...prev,
-        components: [...prev.components, newComponent],
+        template: [...prev.template, newComponent],
       }));
       setDraggedComponent(null);
     }
@@ -304,9 +286,9 @@ export default function PageEditor() {
       const draggedOrder = draggedCanvasComponent.order;
       const targetOrder = targetComponent.order;
 
-      setPageData((prev) => ({
+      setPageData((prev: any) => ({
         ...prev,
-        components: prev.components.map((comp) => {
+        template: prev.template.map((comp: any) => {
           if (comp.id === draggedCanvasComponent.id) {
             return { ...comp, order: targetOrder };
           }
@@ -325,9 +307,9 @@ export default function PageEditor() {
   };
 
   const updateComponentProps = (componentId: string, newProps: any) => {
-    setPageData((prev) => ({
+    setPageData((prev: any) => ({
       ...prev,
-      components: prev.components.map((comp) =>
+      template: prev.template.map((comp: any) =>
         comp.id === componentId
           ? { ...comp, props: { ...comp.props, ...newProps } }
           : comp
@@ -336,23 +318,26 @@ export default function PageEditor() {
   };
 
   const updateComponentGrid = (componentId: string, gridColumn: number) => {
-    setPageData((prev) => ({
+    setPageData((prev: any) => ({
       ...prev,
-      components: prev.components.map((comp) =>
+      template: prev.template.map((comp: any) =>
         comp.id === componentId ? { ...comp, gridColumn } : comp
       ),
     }));
   };
 
   const deleteComponent = (componentId: string) => {
-    setPageData((prev) => ({
+    setPageData((prev: any) => ({
       ...prev,
-      components: prev.components.filter((comp) => comp.id !== componentId),
+      template: prev.template.filter((comp: any) => comp.id !== componentId),
     }));
     setSelectedComponent(null);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    isBackground: boolean = false
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -363,7 +348,7 @@ export default function PageEditor() {
           size: file.size,
           type: file.type,
           data: event.target?.result as string,
-          file: file, // Store original file for later upload
+          file: file,
         };
 
         setPageData((prev: any) => ({
@@ -371,14 +356,122 @@ export default function PageEditor() {
           uploadedImages: [...prev.uploadedImages, imageData],
         }));
 
-        // If we're editing a component, set this as background
         if (selectedComponent) {
-          updateComponentProps(selectedComponent, {
-            backgroundImage: imageData.data,
-          });
+          if (isBackground) {
+            updateComponentProps(selectedComponent, {
+              backgroundImage: imageData.data,
+            });
+          } else {
+            updateComponentProps(selectedComponent, {
+              src: imageData.data,
+            });
+          }
         }
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const savePageData = async () => {
+    try {
+      const formData = new FormData();
+      formData.append("name", pageData.name);
+      formData.append("path", pageData.path);
+      formData.append("status", pageData.status);
+
+      // Create a clean template without base64 data
+      const cleanTemplate = pageData.template.map((comp: any) => {
+        const cleanComp = { ...comp };
+
+        // Handle background image
+        if (comp.props?.backgroundImage?.startsWith?.("data:")) {
+          // New upload: find the file for this background image
+          const imageFile = pageData.uploadedImages.find(
+            (img: any) => img.data === comp.props.backgroundImage
+          )?.file;
+
+          if (imageFile) {
+            // Add file to FormData
+            formData.append(`bg_${comp.id}`, imageFile);
+            // Mark in template that this component has a background image to be uploaded
+            cleanComp.props = { ...comp.props, backgroundImage: "__UPLOAD__" };
+          }
+        } else if (comp.props?.backgroundImageData?.url) {
+          // Existing server image: preserve the original format
+          cleanComp.props = {
+            ...comp.props,
+            backgroundImage: comp.props.backgroundImageData,
+          };
+          delete cleanComp.props.backgroundImageData; // Remove helper property
+        } else if (
+          comp.props?.backgroundImage &&
+          typeof comp.props.backgroundImage === "string"
+        ) {
+          // Regular URL (not base64, not server format)
+          cleanComp.props = {
+            ...comp.props,
+            backgroundImage: comp.props.backgroundImage,
+          };
+        } else if (comp.props?.backgroundImage === null) {
+          // Explicitly set to null
+          cleanComp.props = { ...comp.props, backgroundImage: null };
+        }
+
+        // Handle image component src
+        if (comp.type === "image" && comp.props?.src?.startsWith?.("data:")) {
+          // New upload
+          const imageFile = pageData.uploadedImages.find(
+            (img: any) => img.data === comp.props.src
+          )?.file;
+
+          if (imageFile) {
+            formData.append(`img_${comp.id}`, imageFile);
+            // Mark that this component's src will be uploaded
+            cleanComp.props = { ...comp.props, src: "__UPLOAD__" };
+          }
+        } else if (comp.props?.src) {
+          // Keep existing URL (already on server or external URL)
+          cleanComp.props = { ...comp.props, src: comp.props.src };
+        }
+
+        return cleanComp;
+      });
+
+      // Append clean template without base64 data
+      formData.append("template", JSON.stringify(cleanTemplate));
+
+      // Handle OG image in metadata
+      const cleanMetadata = { ...metadata };
+      if (metadata.ogImage?.startsWith?.("data:")) {
+        const ogImageFile = pageData.uploadedImages.find(
+          (img: any) => img.data === metadata.ogImage
+        )?.file;
+
+        if (ogImageFile) {
+          formData.append("ogImage", ogImageFile);
+          cleanMetadata.ogImage = "__UPLOAD__";
+        }
+      }
+
+      formData.append("metadata", JSON.stringify(cleanMetadata));
+
+      if (pageData.id) {
+        const result = await updatePage.mutateAsync({
+          id: pageData.id,
+          data: formData,
+        });
+        Notification("success", result.message || "Page updated successfully!");
+      } else {
+        const result = await createPage.mutateAsync(formData);
+        Notification("success", result.message || "Page created successfully!");
+
+        if (result?.data?._id) {
+          router.push(`/pages/editor?id=${result.data._id}`);
+        }
+      }
+    } catch (error: any) {
+      Notification("error", error.message || "Failed to save page");
+      console.error("Save error:", error);
     }
   };
 
@@ -405,7 +498,6 @@ export default function PageEditor() {
       height: props.height,
       objectFit: props.objectFit,
       cursor: props.cursor,
-      minHeight: props.minHeight,
     };
 
     switch (type) {
@@ -431,8 +523,6 @@ export default function PageEditor() {
             </button>
           </div>
         );
-      case "container":
-        return <div style={style}></div>;
       case "list":
         return (
           <ul style={{ ...style, listStyleType: props.listStyle }}>
@@ -446,14 +536,19 @@ export default function PageEditor() {
     }
   };
 
-  const savePageData = () => {
-    console.log("Saving page data:", JSON.stringify(pageData, null, 2));
-    // Implement save logic
-  };
-
   const selectedComponentData = selectedComponent
-    ? pageData.components.find((comp) => comp.id === selectedComponent)
+    ? pageData.template.find((comp: any) => comp.id === selectedComponent)
     : null;
+
+  const isSaving = createPage.isPending || updatePage.isPending;
+
+  if (isLoadingDetail && pageId) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen flex bg-slate-50 relative overflow-hidden">
@@ -560,24 +655,23 @@ export default function PageEditor() {
             </div>
 
             <h1 className="font-semibold text-slate-800 hidden md:block truncate max-w-xs">
-              {pageData.title}
+              {pageData.name}
             </h1>
 
             <div className="flex items-center gap-2">
-              {selectedComponent && !showPropertiesPanel && (
-                <button
-                  onClick={() => setShowPropertiesPanel(true)}
-                  className="lg:hidden p-2 bg-slate-100 rounded-lg"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
               <button
                 onClick={savePageData}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                disabled={isSaving}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
               >
-                <Save className="w-4 h-4" />
-                <span className="hidden sm:inline">Save</span>
+                {isSaving ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                <span className="hidden sm:inline">
+                  {isSaving ? "Saving..." : "Save"}
+                </span>
               </button>
               <button
                 onClick={() => setShowMetadataPanel(true)}
@@ -599,17 +693,16 @@ export default function PageEditor() {
               onDrop={handleDrop}
               onDragOver={handleDragOver}
             >
-              {pageData.components.length === 0 ? (
+              {pageData.template.length === 0 ? (
                 <div className="text-center py-20 text-slate-500">
                   <Layout className="w-12 h-12 mx-auto mb-4 opacity-50" />
                   <p>Drag components here to start building your page</p>
                 </div>
               ) : (
-                // <div className={`grid ${getGridClass()} gap-4`}>
-                <div className={`grid grid-cols-12 min-h-full`}>
-                  {pageData.components
-                    .sort((a, b) => a.order - b.order)
-                    .map((component) => {
+                <div className="grid grid-cols-12 gap-4">
+                  {pageData.template
+                    .sort((a: any, b: any) => a.order - b.order)
+                    .map((component: any) => {
                       const responsiveColumns = getResponsiveColumns(
                         component.gridColumn
                       );
@@ -622,8 +715,7 @@ export default function PageEditor() {
                           }
                           onDrop={(e) => handleCanvasDrop(e, component)}
                           onDragOver={handleDragOver}
-                          // Tailwind safelist: col-span-1 col-span-2 col-span-3 col-span-4 col-span-5 col-span-6 col-span-7 col-span-8 col-span-9 col-span-10 col-span-11 col-span-12
-                          className={`col-span-${responsiveColumns} relative group cursor-pointer transition-all duration-200 hover:scale-[1.02] w-full`}
+                          className={`col-span-${responsiveColumns} relative group cursor-pointer transition-all duration-200 hover:scale-[1.02]`}
                           onClick={() => {
                             setSelectedComponent(component.id);
                             setShowPropertiesPanel(true);
@@ -632,13 +724,12 @@ export default function PageEditor() {
                           <div
                             className={`relative ${
                               selectedComponent === component.id
-                                ? "ring-2 ring-indigo-500 ring-offset-2 w-full"
+                                ? "ring-2 ring-indigo-500 ring-offset-2"
                                 : ""
                             } rounded-lg transition-all`}
                           >
                             {renderComponent(component)}
 
-                            {/* Drag Handle */}
                             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                               <div className="bg-slate-800 text-white p-1 rounded cursor-grab active:cursor-grabbing">
                                 <GripVertical className="w-3 h-3" />
@@ -683,14 +774,14 @@ export default function PageEditor() {
                   setSelectedComponent(null);
                   setShowPropertiesPanel(false);
                 }}
-                className="p-2 bg-white border border-slate-200 rounded-lg shadow-sm transition-all duration-300 hover:bg-slate-50"
+                className="p-2 hover:bg-slate-100 rounded-lg"
               >
                 <X className="w-4 h-4 text-slate-600" />
               </button>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-6">
-              {/* Grid Column */}
+              {/* Grid Column Control */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Width ({selectedComponentData.gridColumn}/12 columns)
@@ -712,57 +803,12 @@ export default function PageEditor() {
                   <span>1 col</span>
                   <span className="font-medium">
                     {Math.round((selectedComponentData.gridColumn / 12) * 100)}%
-                    width
                   </span>
                   <span>12 col</span>
                 </div>
-
-                {/* Responsive preview */}
-                <div className="mt-3 p-3 bg-slate-50 rounded-lg">
-                  <div className="text-xs font-medium text-slate-600 mb-2">
-                    Preview on devices:
-                  </div>
-                  <div className="space-y-1 text-xs text-slate-500">
-                    <div className="flex justify-between">
-                      <span>Desktop:</span>
-                      <span>
-                        {Math.round(
-                          (selectedComponentData.gridColumn / 12) * 100
-                        )}
-                        %
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Tablet:</span>
-                      <span>
-                        {Math.round(
-                          (getResponsiveColumns(
-                            selectedComponentData.gridColumn
-                          ) /
-                            12) *
-                            100
-                        )}
-                        %
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Mobile:</span>
-                      <span>
-                        {Math.round(
-                          (getResponsiveColumns(
-                            selectedComponentData.gridColumn
-                          ) /
-                            12) *
-                            100
-                        )}
-                        %
-                      </span>
-                    </div>
-                  </div>
-                </div>
               </div>
 
-              {/* Text Alignment for text, heading, and button */}
+              {/* Text Alignment */}
               {(selectedComponentData.type === "text" ||
                 selectedComponentData.type === "heading" ||
                 selectedComponentData.type === "button") && (
@@ -803,19 +849,12 @@ export default function PageEditor() {
                 </label>
                 <div className="space-y-2">
                   <button
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => bgImageInputRef.current?.click()}
                     className="w-full p-3 border-2 border-dashed border-slate-200 rounded-lg hover:border-indigo-300 transition-colors flex items-center justify-center gap-2 text-slate-600 hover:text-indigo-600"
                   >
                     <Upload className="w-4 h-4" />
-                    Upload Image
+                    Upload Background
                   </button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
                   {selectedComponentData.props.backgroundImage && (
                     <div className="relative">
                       <img
@@ -829,7 +868,7 @@ export default function PageEditor() {
                             backgroundImage: null,
                           })
                         }
-                        className="absolute top-1 right-1 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                        className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -838,7 +877,7 @@ export default function PageEditor() {
                 </div>
               </div>
 
-              {/* Component-specific properties */}
+              {/* Text/Heading specific props */}
               {(selectedComponentData.type === "text" ||
                 selectedComponentData.type === "heading") && (
                 <>
@@ -853,7 +892,7 @@ export default function PageEditor() {
                           content: e.target.value,
                         })
                       }
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       rows={3}
                     />
                   </div>
@@ -872,7 +911,7 @@ export default function PageEditor() {
                           fontSize: parseInt(e.target.value),
                         })
                       }
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
 
@@ -894,6 +933,7 @@ export default function PageEditor() {
                 </>
               )}
 
+              {/* Image specific props */}
               {selectedComponentData.type === "image" && (
                 <>
                   <div>
@@ -904,7 +944,9 @@ export default function PageEditor() {
                       {/* Uploaded Images Gallery */}
                       {pageData.uploadedImages.length > 0 && (
                         <div>
-                          <p className="text-xs text-slate-600 mb-2">Choose from uploaded images:</p>
+                          <p className="text-xs text-slate-600 mb-2">
+                            Choose from uploaded:
+                          </p>
                           <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
                             {pageData.uploadedImages.map((image: any) => (
                               <div key={image.id} className="relative group">
@@ -912,27 +954,26 @@ export default function PageEditor() {
                                   src={image.data}
                                   alt={image.name}
                                   className={`w-full h-16 object-cover rounded-lg cursor-pointer transition-all ${
-                                    selectedComponentData.props.src === image.data
+                                    selectedComponentData.props.src ===
+                                    image.data
                                       ? "ring-2 ring-indigo-500"
                                       : "hover:opacity-75"
                                   }`}
                                   onClick={() =>
-                                    updateComponentProps(selectedComponentData.id, {
-                                      src: image.data,
-                                    })
+                                    updateComponentProps(
+                                      selectedComponentData.id,
+                                      {
+                                        src: image.data,
+                                      }
+                                    )
                                   }
                                 />
-                                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
-                                  <span className="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
-                                    {selectedComponentData.props.src === image.data ? "Selected" : "Use"}
-                                  </span>
-                                </div>
                               </div>
                             ))}
                           </div>
                         </div>
                       )}
-                      
+
                       {/* Upload New Image */}
                       <button
                         onClick={() => fileInputRef.current?.click()}
@@ -941,10 +982,12 @@ export default function PageEditor() {
                         <Upload className="w-4 h-4" />
                         Upload New Image
                       </button>
-                      
+
                       {/* Or use URL */}
                       <div>
-                        <p className="text-xs text-slate-600 mb-2">Or enter image URL:</p>
+                        <p className="text-xs text-slate-600 mb-2">
+                          Or enter URL:
+                        </p>
                         <input
                           type="url"
                           value={selectedComponentData.props.src}
@@ -954,7 +997,7 @@ export default function PageEditor() {
                             })
                           }
                           placeholder="https://example.com/image.jpg"
-                          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                       </div>
                     </div>
@@ -972,7 +1015,7 @@ export default function PageEditor() {
                           alt: e.target.value,
                         })
                       }
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
 
@@ -990,12 +1033,13 @@ export default function PageEditor() {
                           borderRadius: parseInt(e.target.value),
                         })
                       }
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                 </>
               )}
 
+              {/* Button specific props */}
               {selectedComponentData.type === "button" && (
                 <>
                   <div>
@@ -1010,7 +1054,7 @@ export default function PageEditor() {
                           text: e.target.value,
                         })
                       }
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
 
@@ -1028,7 +1072,7 @@ export default function PageEditor() {
                           fontSize: parseInt(e.target.value),
                         })
                       }
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
 
@@ -1046,7 +1090,7 @@ export default function PageEditor() {
                           borderRadius: parseInt(e.target.value),
                         })
                       }
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
 
@@ -1063,6 +1107,124 @@ export default function PageEditor() {
                         })
                       }
                       className="w-full h-10 border border-slate-200 rounded-lg cursor-pointer"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Text Color
+                    </label>
+                    <input
+                      type="color"
+                      value={selectedComponentData.props.color}
+                      onChange={(e) =>
+                        updateComponentProps(selectedComponentData.id, {
+                          color: e.target.value,
+                        })
+                      }
+                      className="w-full h-10 border border-slate-200 rounded-lg cursor-pointer"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* List specific props */}
+              {selectedComponentData.type === "list" && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      List Items
+                    </label>
+                    <div className="space-y-2">
+                      {selectedComponentData.props.items.map(
+                        (item: string, index: number) => (
+                          <div key={index} className="flex gap-2">
+                            <input
+                              type="text"
+                              value={item}
+                              onChange={(e) => {
+                                const newItems = [
+                                  ...selectedComponentData.props.items,
+                                ];
+                                newItems[index] = e.target.value;
+                                updateComponentProps(selectedComponentData.id, {
+                                  items: newItems,
+                                });
+                              }}
+                              className="flex-1 px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            />
+                            <button
+                              onClick={() => {
+                                const newItems =
+                                  selectedComponentData.props.items.filter(
+                                    (_: any, i: number) => i !== index
+                                  );
+                                updateComponentProps(selectedComponentData.id, {
+                                  items: newItems,
+                                });
+                              }}
+                              className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )
+                      )}
+                      <button
+                        onClick={() => {
+                          const newItems = [
+                            ...selectedComponentData.props.items,
+                            `Item ${
+                              selectedComponentData.props.items.length + 1
+                            }`,
+                          ];
+                          updateComponentProps(selectedComponentData.id, {
+                            items: newItems,
+                          });
+                        }}
+                        className="w-full p-2 border-2 border-dashed border-slate-200 rounded-lg hover:border-indigo-300 text-slate-600 hover:text-indigo-600 transition-colors"
+                      >
+                        + Add Item
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      List Style
+                    </label>
+                    <select
+                      value={selectedComponentData.props.listStyle}
+                      onChange={(e) =>
+                        updateComponentProps(selectedComponentData.id, {
+                          listStyle: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="disc">Disc</option>
+                      <option value="circle">Circle</option>
+                      <option value="square">Square</option>
+                      <option value="decimal">Numbers</option>
+                      <option value="none">None</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Font Size
+                    </label>
+                    <input
+                      type="number"
+                      min="8"
+                      max="32"
+                      value={selectedComponentData.props.fontSize}
+                      onChange={(e) =>
+                        updateComponentProps(selectedComponentData.id, {
+                          fontSize: parseInt(e.target.value),
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
 
@@ -1119,42 +1281,12 @@ export default function PageEditor() {
                       padding: parseInt(e.target.value),
                     })
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
                 <div className="text-xs text-slate-500 mt-1">
                   Spacing around content (px)
                 </div>
               </div>
-
-              {/* Uploaded Images Gallery */}
-              {pageData.uploadedImages.length > 0 && (
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Uploaded Images
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {pageData.uploadedImages.map((image: any) => (
-                      <div key={image.id} className="relative group">
-                        <img
-                          src={image.data}
-                          alt={image.name}
-                          className="w-full h-16 object-cover rounded-lg cursor-pointer hover:opacity-75 transition-opacity"
-                          onClick={() =>
-                            updateComponentProps(selectedComponentData.id, {
-                              backgroundImage: image.data,
-                            })
-                          }
-                        />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
-                          <span className="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
-                            Use
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         )}
@@ -1175,7 +1307,9 @@ export default function PageEditor() {
 
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-slate-800 mb-4">Basic SEO</h3>
+                <h3 className="text-lg font-semibold text-slate-800 mb-4">
+                  Basic SEO
+                </h3>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -1184,11 +1318,18 @@ export default function PageEditor() {
                     <input
                       type="text"
                       value={metadata.metaTitle}
-                      onChange={(e) => setMetadata(prev => ({ ...prev, metaTitle: e.target.value }))}
+                      onChange={(e) =>
+                        setMetadata((prev) => ({
+                          ...prev,
+                          metaTitle: e.target.value,
+                        }))
+                      }
                       placeholder="Enter page title for SEO (50-60 characters)"
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
-                    <p className="text-xs text-slate-500 mt-1">{metadata.metaTitle.length}/60 characters</p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {metadata.metaTitle.length}/60 characters
+                    </p>
                   </div>
 
                   <div>
@@ -1197,12 +1338,19 @@ export default function PageEditor() {
                     </label>
                     <textarea
                       value={metadata.metaDescription}
-                      onChange={(e) => setMetadata(prev => ({ ...prev, metaDescription: e.target.value }))}
+                      onChange={(e) =>
+                        setMetadata((prev) => ({
+                          ...prev,
+                          metaDescription: e.target.value,
+                        }))
+                      }
                       placeholder="Enter page description for search engines (150-160 characters)"
                       rows={3}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
-                    <p className="text-xs text-slate-500 mt-1">{metadata.metaDescription.length}/160 characters</p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {metadata.metaDescription.length}/160 characters
+                    </p>
                   </div>
 
                   <div>
@@ -1212,16 +1360,23 @@ export default function PageEditor() {
                     <input
                       type="text"
                       value={metadata.metaKeywords}
-                      onChange={(e) => setMetadata(prev => ({ ...prev, metaKeywords: e.target.value }))}
+                      onChange={(e) =>
+                        setMetadata((prev) => ({
+                          ...prev,
+                          metaKeywords: e.target.value,
+                        }))
+                      }
                       placeholder="Enter keywords separated by commas"
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                 </div>
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-slate-800 mb-4">Open Graph (Social Media)</h3>
+                <h3 className="text-lg font-semibold text-slate-800 mb-4">
+                  Open Graph (Social Media)
+                </h3>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -1230,9 +1385,14 @@ export default function PageEditor() {
                     <input
                       type="text"
                       value={metadata.ogTitle}
-                      onChange={(e) => setMetadata(prev => ({ ...prev, ogTitle: e.target.value }))}
+                      onChange={(e) =>
+                        setMetadata((prev) => ({
+                          ...prev,
+                          ogTitle: e.target.value,
+                        }))
+                      }
                       placeholder="Title for social media sharing"
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
 
@@ -1242,10 +1402,15 @@ export default function PageEditor() {
                     </label>
                     <textarea
                       value={metadata.ogDescription}
-                      onChange={(e) => setMetadata(prev => ({ ...prev, ogDescription: e.target.value }))}
+                      onChange={(e) =>
+                        setMetadata((prev) => ({
+                          ...prev,
+                          ogDescription: e.target.value,
+                        }))
+                      }
                       placeholder="Description for social media sharing"
                       rows={2}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
 
@@ -1256,16 +1421,23 @@ export default function PageEditor() {
                     <input
                       type="url"
                       value={metadata.ogImage}
-                      onChange={(e) => setMetadata(prev => ({ ...prev, ogImage: e.target.value }))}
+                      onChange={(e) =>
+                        setMetadata((prev) => ({
+                          ...prev,
+                          ogImage: e.target.value,
+                        }))
+                      }
                       placeholder="Image URL for social media sharing"
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                 </div>
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-slate-800 mb-4">Advanced SEO</h3>
+                <h3 className="text-lg font-semibold text-slate-800 mb-4">
+                  Advanced SEO
+                </h3>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -1274,9 +1446,14 @@ export default function PageEditor() {
                     <input
                       type="url"
                       value={metadata.canonicalUrl}
-                      onChange={(e) => setMetadata(prev => ({ ...prev, canonicalUrl: e.target.value }))}
+                      onChange={(e) =>
+                        setMetadata((prev) => ({
+                          ...prev,
+                          canonicalUrl: e.target.value,
+                        }))
+                      }
                       placeholder="Canonical URL for this page"
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
 
@@ -1286,11 +1463,18 @@ export default function PageEditor() {
                     </label>
                     <select
                       value={metadata.robotsIndex}
-                      onChange={(e) => setMetadata(prev => ({ ...prev, robotsIndex: e.target.value }))}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      onChange={(e) =>
+                        setMetadata((prev) => ({
+                          ...prev,
+                          robotsIndex: e.target.value,
+                        }))
+                      }
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
                       <option value="index,follow">Index, Follow</option>
-                      <option value="noindex,nofollow">No Index, No Follow</option>
+                      <option value="noindex,nofollow">
+                        No Index, No Follow
+                      </option>
                       <option value="index,nofollow">Index, No Follow</option>
                       <option value="noindex,follow">No Index, Follow</option>
                     </select>
@@ -1307,10 +1491,7 @@ export default function PageEditor() {
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  console.log("Saving metadata:", metadata);
-                  setShowMetadataPanel(false);
-                }}
+                onClick={() => setShowMetadataPanel(false)}
                 className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
               >
                 Save Metadata
@@ -1319,6 +1500,22 @@ export default function PageEditor() {
           </div>
         </div>
       )}
+
+      {/* Hidden file inputs */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={(e) => handleImageUpload(e, false)}
+        className="hidden"
+      />
+      <input
+        ref={bgImageInputRef}
+        type="file"
+        accept="image/*"
+        onChange={(e) => handleImageUpload(e, true)}
+        className="hidden"
+      />
 
       {/* Mobile overlay for properties panel */}
       {showPropertiesPanel && window.innerWidth < 1024 && (

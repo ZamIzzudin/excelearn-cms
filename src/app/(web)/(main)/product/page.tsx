@@ -1,31 +1,75 @@
 /** @format */
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Package, Plus, Search, Filter, Edit, Trash2 } from "lucide-react";
+import {
+  Package,
+  Plus,
+  Search,
+  Filter,
+  Edit,
+  Trash2,
+  ChevronDown,
+} from "lucide-react";
 import { Tooltip } from "antd";
 
 import Notification from "@/components/Notification";
+import { useDebounce } from "@/hooks/useDebounce";
 
 import { useProducts, useDelete } from "./hook";
 
 const CATEGORIES = [
   { value: "All", label: "All Categories" },
-  { value: "IT Training", label: "IT Training" },
-  { value: "IT Consultant", label: "IT Consultant" },
-  { value: "IT Support", label: "IT Support" },
+  { value: "IT_TRAINING", label: "IT Training" },
+  { value: "IT_CONSULTANT", label: "IT Consultant" },
+  { value: "IT_SUPPORT", label: "IT Support" },
+];
+
+const SORT_OPTIONS = [
+  { value: "desc", label: "Newest First" },
+  { value: "asc", label: "Oldest First" },
 ];
 
 export default function ProductPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
-
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [selected, setSelected] = useState(null);
 
-  const { data: products, isLoading, refetch } = useProducts();
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    refetch,
+  } = useProducts({
+    product_category: selectedCategory !== "All" ? selectedCategory : undefined,
+    product_name: debouncedSearchTerm || undefined,
+    sort_order: sortOrder,
+  });
+
   const { mutate: deleteProduct, isPending } = useDelete();
+
+  const products = useMemo(() => {
+    return data?.pages?.flatMap((page: any) => page.data) || [];
+  }, [data]);
+
+  const pagination = useMemo(() => {
+    return data?.pages?.[data.pages.length - 1]?.pagination || {};
+  }, [data]);
+
+  const handleLoadMore = () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  };
 
   function ProductCard({ product }: any) {
     return (
@@ -58,14 +102,14 @@ export default function ProductPage() {
           </div>
 
           <p className="text-sm text-slate-600 mb-4 line-clamp-2">
-            {product.overview_produk}
+            {product.product_description}
           </p>
 
           <div className="space-y-2 mb-4 text-sm text-slate-600">
             <div className="flex justify-between">
               <span>Skill Level:</span>
               <span className="font-medium capitalize">
-                {product.skill_level.toLowerCase()?.replace("_", " ")}
+                {product.skill_level?.toLowerCase()?.replace("_", " ")}
               </span>
             </div>
             <div className="flex justify-between">
@@ -117,7 +161,8 @@ export default function ProductPage() {
 
       {/* Filters */}
       <div className="bg-white rounded-2xl p-6 border border-slate-200">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
+          {/* Search */}
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
             <input
@@ -128,19 +173,152 @@ export default function ProductPage() {
               className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
-            <Filter className="w-5 h-5 text-slate-500" />
-            Filter
-          </button>
+
+          {/* Filter Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+              className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors w-full md:w-auto"
+            >
+              <Filter className="w-5 h-5 text-slate-500" />
+              <span>Filter</span>
+              <ChevronDown
+                className={`w-4 h-4 text-slate-500 transition-transform ${
+                  showFilterDropdown ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {showFilterDropdown && (
+              <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-slate-200 p-4 z-10">
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Category
+                  </label>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    {CATEGORIES.map((cat) => (
+                      <option key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Sort By
+                  </label>
+                  <select
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    {SORT_OPTIONS.map((sort) => (
+                      <option key={sort.value} value={sort.value}>
+                        {sort.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Reset Button */}
+                <button
+                  onClick={() => {
+                    setSelectedCategory("All");
+                    setSortOrder("desc");
+                    setSearchTerm("");
+                    setShowFilterDropdown(false);
+                  }}
+                  className="w-full mt-4 px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                  Reset Filters
+                </button>
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* Active Filters Display */}
+        {(selectedCategory !== "All" || debouncedSearchTerm) && (
+          <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-slate-200">
+            <span className="text-sm text-slate-600">Active filters:</span>
+            {selectedCategory !== "All" && (
+              <span className="px-3 py-1 text-xs font-medium bg-indigo-50 text-indigo-700 rounded-full flex items-center gap-1">
+                {selectedCategory}
+                <button
+                  onClick={() => setSelectedCategory("All")}
+                  className="ml-1 hover:text-indigo-900"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+            {debouncedSearchTerm && (
+              <span className="px-3 py-1 text-xs font-medium bg-indigo-50 text-indigo-700 rounded-full flex items-center gap-1">
+                Search: "{debouncedSearchTerm}"
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="ml-1 hover:text-indigo-900"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
-      {products && products.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((product: any) => (
-            <ProductCard product={product} />
-          ))}
+      {/* Loading State */}
+      {isLoading ? (
+        <div className="text-center py-12">
+          <div className="inline-block w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-slate-600">Loading products...</p>
         </div>
+      ) : products && products.length > 0 ? (
+        <>
+          {/* Products Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.map((product: any) => (
+              <ProductCard key={product._id} product={product} />
+            ))}
+          </div>
+
+          {/* Pagination Info & Load More Button */}
+          <div className="text-center space-y-4">
+            <p className="text-sm text-slate-600">
+              Showing {products.length} of{" "}
+              {pagination.total_products || products.length} products
+              {pagination.total_pages > 1 &&
+                ` • Page ${pagination.current_page || 1} of ${
+                  pagination.total_pages
+                }`}
+            </p>
+
+            {hasNextPage && (
+              <button
+                onClick={handleLoadMore}
+                disabled={isFetchingNextPage}
+                className="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
+              >
+                {isFetchingNextPage ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="w-5 h-5" />
+                    Load More
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        </>
       ) : (
         <div className="text-center py-12 bg-white rounded-xl border border-slate-200 flex flex-col items-center">
           <Package className="w-16 h-16 text-slate-300 mx-auto mb-4" />
@@ -148,7 +326,7 @@ export default function ProductPage() {
             No products found
           </h3>
           <p className="text-slate-600 mb-6">
-            {searchTerm
+            {searchTerm || selectedCategory !== "All"
               ? "Try adjusting your search or filters"
               : "Get started by creating your first product"}
           </p>
@@ -162,13 +340,14 @@ export default function ProductPage() {
         </div>
       )}
 
+      {/* Delete Confirmation Modal */}
       {selected ? (
         <div className="fixed bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 top-0 right-0 left-0 bottom-0 m-0">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md text-center">
             <h2 className="text-xl font-bold text-slate-800 mb-6">
               Delete Product
             </h2>
-            <p>Are you sure want to delete this product?</p>
+            <p>Are you sure you want to delete this product?</p>
             <div className="flex gap-5 mt-8 justify-center">
               <button
                 type="button"

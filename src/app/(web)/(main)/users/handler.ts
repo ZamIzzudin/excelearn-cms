@@ -4,9 +4,11 @@
 
 import AxiosClient from "@/lib/axios";
 
-export async function UserListService() {
+export async function UserListService(search?: string) {
   try {
-    const { data: response } = await AxiosClient.get("/auth/list");
+    const params = search ? { search } : {};
+
+    const { data: response } = await AxiosClient.get("/auth/list", { params });
 
     const { status, message, data } = response;
 

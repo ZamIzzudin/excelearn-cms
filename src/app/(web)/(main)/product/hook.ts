@@ -1,6 +1,12 @@
 /** @format */
 
-import { useMutation, useQuery, UseQueryResult } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  UseQueryResult,
+  useInfiniteQuery,
+  UseInfiniteQueryResult,
+} from "@tanstack/react-query";
 import {
   ProductListService,
   ProductDetailService,
@@ -9,20 +15,43 @@ import {
   DeleteService,
 } from "./handler";
 
-export const useProducts = (): UseQueryResult<any> => {
-  return useQuery({
-    queryKey: ["product_list"],
-    queryFn: async () => {
+interface UseProductsParams {
+  product_category?: string;
+  product_name?: string;
+  sort_order?: string;
+}
+
+export const useProducts = (
+  params: UseProductsParams = {}
+): UseInfiniteQueryResult<any> => {
+  const { product_category, product_name, sort_order = "desc" } = params;
+
+  return useInfiniteQuery({
+    queryKey: ["product_list", product_category, product_name, sort_order],
+    queryFn: async ({ pageParam = 1 }) => {
       try {
-        const { data, status } = await ProductListService();
+        const { data, status } = await ProductListService({
+          page: pageParam,
+          product_category,
+          product_name,
+          sort_order,
+        });
 
         if (status !== 200) throw new Error();
 
         return data;
       } catch (e) {
-        return [];
+        return { data: [], pagination: {} };
       }
     },
+    getNextPageParam: (lastPage) => {
+      // Return next page number if has_next is true, otherwise return undefined
+      if (lastPage?.pagination?.has_next) {
+        return lastPage.pagination.current_page + 1;
+      }
+      return undefined;
+    },
+    initialPageParam: 1,
     refetchOnWindowFocus: false,
   });
 };

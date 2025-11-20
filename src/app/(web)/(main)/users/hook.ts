@@ -8,12 +8,12 @@ import {
   UpdateService,
 } from "./handler";
 
-export const useUser = (): UseQueryResult<any> => {
+export const useUser = (search: string): UseQueryResult<any> => {
   const queryResult = useQuery({
-    queryKey: ["user_list"],
+    queryKey: ["user_list", search], // Add search to query key
     queryFn: async () => {
       try {
-        const { data, status } = await UserListService();
+        const { data, status } = await UserListService(search);
 
         if (status !== 200) throw new Error();
 

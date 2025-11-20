@@ -8,22 +8,54 @@ const headers = {
   },
 };
 
-export async function ProductListService() {
-  try {
-    const { data: response } = await AxiosClient.get("/product/list");
+interface ProductListParams {
+  page?: number;
+  product_category?: string;
+  product_name?: string;
+  sort_order?: string;
+}
 
-    const { status, message, data } = response;
+export async function ProductListService(params: ProductListParams = {}) {
+  try {
+    // Build query string
+    const queryParams = new URLSearchParams();
+
+    if (params.page) {
+      queryParams.append("page", params.page.toString());
+    }
+
+    if (params.product_category) {
+      queryParams.append("product_category", params.product_category);
+    }
+
+    if (params.product_name) {
+      queryParams.append("product_name", params.product_name);
+    }
+
+    if (params.sort_order) {
+      queryParams.append("sort_order", params.sort_order);
+    }
+
+    const queryString = queryParams.toString();
+    const url = `/product/list${queryString ? `?${queryString}` : ""}`;
+
+    const { data: response } = await AxiosClient.get(url);
+
+    const { status, message, data, pagination } = response;
 
     if (status !== 200) throw new Error(message);
 
     return {
       status,
       message,
-      data,
+      data: {
+        data,
+        pagination,
+      },
     };
   } catch (error: any) {
     console.log(error);
-    return error.message;
+    throw error;
   }
 }
 

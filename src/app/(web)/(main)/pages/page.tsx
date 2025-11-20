@@ -2,60 +2,76 @@
 
 "use client";
 
-import { useState } from "react";
-import { Plus, Search, Filter, Edit, Trash2, Eye, Copy } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Plus, Search, Filter, Trash2, Eye, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-
-// Dummy data untuk halaman yang sudah dibuat
-const dummyPages = [
-  {
-    id: 1,
-    title: "Homepage",
-    slug: "homepage",
-    status: "published",
-    lastModified: "2024-01-15",
-  },
-  {
-    id: 2,
-    title: "About Us",
-    slug: "about-us",
-    status: "draft",
-    lastModified: "2024-01-14",
-  },
-  {
-    id: 3,
-    title: "Services",
-    slug: "services",
-    status: "published",
-    lastModified: "2024-01-13",
-  },
-  {
-    id: 4,
-    title: "Contact",
-    slug: "contact",
-    status: "published",
-    lastModified: "2024-01-12",
-  },
-];
+import { usePages, useDeletePage, useTogglePublishPage } from "./hook";
+import { useDebounce } from "@/hooks/useDebounce";
+import Notification from "@/components/Notification";
 
 export default function PagesPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<
+    "All" | "Published" | "Draft"
+  >("All");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newPageTitle, setNewPageTitle] = useState("");
   const [newPageSlug, setNewPageSlug] = useState("");
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const router = useRouter();
+  const observerTarget = useRef(null);
 
-  const filteredPages = dummyPages.filter(
-    (page) =>
-      page.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      page.slug.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Debounce search
+  const debouncedSearch = useDebounce(searchTerm, 500);
+
+  // Fetch pages dengan infinite scroll
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    refetch,
+  } = usePages({
+    search: debouncedSearch,
+    status: statusFilter === "All" ? undefined : statusFilter,
+  });
+
+  // Delete mutation
+  const deletePage = useDeletePage();
+  const publishPage = useTogglePublishPage();
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // Flatten pages dari semua pages
+  const allPages = data?.pages.flatMap((page: any) => page.data) || [];
 
   const handleCreatePage = () => {
     if (!newPageTitle.trim()) return;
 
     const slug = newPageSlug || newPageTitle.toLowerCase().replace(/\s+/g, "-");
-    console.log("Creating new page:", { title: newPageTitle, slug });
 
     // Redirect ke canvas editor dengan page baru
     router.push(
@@ -70,25 +86,33 @@ export default function PagesPage() {
   };
 
   const handleEditPage = (page: any) => {
-    router.push(
-      `/pages/editor?id=${page.id}&title=${encodeURIComponent(
-        page.title
-      )}&slug=${page.slug}`
-    );
+    router.push(`/pages/editor?id=${page._id}`);
   };
 
-  const handleDuplicatePage = (page: any) => {
-    console.log("Duplicating page:", page);
-    router.push(
-      `/pages/editor?duplicate=${page.id}&title=${encodeURIComponent(
-        page.title + " Copy"
-      )}&slug=${page.slug}-copy`
-    );
+  const handleDeletePage = async (pageId: string, pageName: string) => {
+    if (confirm(`Are you sure you want to delete "${pageName}"?`)) {
+      try {
+        await deletePage.mutateAsync(pageId);
+        Notification("success", "Page deleted successfully!");
+        // Refetch to update list
+        refetch();
+      } catch (error: any) {
+        Notification("error", error.message || "Failed to delete page");
+      }
+    }
   };
 
-  const handleDeletePage = (pageId: number) => {
-    console.log("Deleting page:", pageId);
-    // Implement delete logic
+  const handlePublishPage = async (pageId: string, pageName: string) => {
+    if (confirm(`Are you sure you want to publish "${pageName}"?`)) {
+      try {
+        await publishPage.mutateAsync(pageId);
+        Notification("success", "Page publish successfully!");
+        // Refetch to update list
+        refetch();
+      } catch (error: any) {
+        Notification("error", error.message || "Failed to publish page");
+      }
+    }
   };
 
   return (
@@ -123,67 +147,169 @@ export default function PagesPage() {
               className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
-            <Filter className="w-5 h-5 text-slate-500" />
-            Filter
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+              className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
+            >
+              <Filter className="w-5 h-5 text-slate-500" />
+              <span className="capitalize">{statusFilter}</span>
+            </button>
+            {showFilterDropdown && (
+              <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-lg z-10">
+                {["All", "Published", "Draft"].map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => {
+                      setStatusFilter(status as any);
+                      setShowFilterDropdown(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 hover:bg-slate-50 transition-colors first:rounded-t-xl last:rounded-b-xl capitalize ${
+                      statusFilter === status
+                        ? "bg-indigo-50 text-indigo-600"
+                        : ""
+                    }`}
+                  >
+                    {status}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Pages Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredPages.map((page) => (
-          <div
-            key={page.id}
-            className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-lg transition-all group"
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        </div>
+      )}
+
+      {/* Error State */}
+      {isError && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+          <p className="text-red-600">
+            Failed to load pages. Please try again.
+          </p>
+          <button
+            onClick={() => refetch()}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
           >
-            {/* Thumbnail */}
-            <div className="relative h-48 bg-slate-100">
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all flex items-center justify-center">
-                <h1 className="font-semibold text-gray-500">{page.title}</h1>
-                <button
-                  onClick={() => handleEditPage(page)}
-                  className="opacity-0 group-hover:opacity-100 bg-white text-slate-800 px-4 py-2 rounded-lg font-medium transition-all transform scale-95 group-hover:scale-100 absolute"
-                >
-                  Edit Page
-                </button>
-                <span
-                  className={`top-5 right-5 absolute inline-flex px-2 py-1 rounded-full text-xs font-medium capitalize ${
-                    page.status === "published"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-yellow-100 text-yellow-700"
-                  }`}
-                >
-                  {page.status}
-                </span>
-              </div>
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!isLoading && !isError && allPages.length === 0 && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+          <div className="max-w-md mx-auto">
+            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="w-8 h-8 text-slate-400" />
             </div>
+            <h3 className="text-lg font-semibold text-slate-800 mb-2">
+              {searchTerm ? "No pages found" : "No pages yet"}
+            </h3>
+            <p className="text-slate-600 mb-6">
+              {searchTerm
+                ? "Try adjusting your search or filters"
+                : "Get started by creating your first page"}
+            </p>
+            {!searchTerm && (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+              >
+                <Plus className="w-5 h-5" />
+                Create Page
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
-            {/* Content */}
-            <div className="p-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-500">/{page.slug}</span>
+      {/* Pages Grid */}
+      {!isLoading && !isError && allPages.length > 0 && (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {allPages.map((page: any) => (
+              <div
+                key={page._id}
+                className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-lg transition-all group"
+              >
+                {/* Thumbnail */}
+                <div className="relative h-48 bg-gradient-to-br from-slate-100 to-slate-200">
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all flex items-center justify-center">
+                    <h1 className="font-semibold text-gray-500 px-4 text-center">
+                      {page.name}
+                    </h1>
+                    <button
+                      onClick={() => handleEditPage(page)}
+                      className="opacity-0 group-hover:opacity-100 bg-white text-slate-800 px-4 py-2 rounded-lg font-medium transition-all transform scale-95 group-hover:scale-100 absolute"
+                    >
+                      Edit Page
+                    </button>
+                    <span
+                      className={`top-3 right-3 absolute inline-flex px-2 py-1 rounded-full text-xs font-medium capitalize ${
+                        page.status === "Published"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}
+                    >
+                      {page.status}
+                    </span>
+                  </div>
+                </div>
 
-                <div className="flex items-center gap-2 justify-between">
-                  <button
-                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                    title="Preview"
-                  >
-                    <Eye className="w-4 h-4 text-slate-500" />
-                  </button>
-                  <button
-                    onClick={() => handleDeletePage(page.id)}
-                    className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Delete"
-                  >
-                    <Trash2 className="w-4 h-4 text-red-500" />
-                  </button>
+                {/* Content */}
+                <div className="p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-500 truncate">
+                      /{page.path}
+                    </span>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handlePublishPage(page._id, page.name)}
+                        className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                        title="Preview"
+                      >
+                        <Eye className="w-4 h-4 text-slate-500" />
+                      </button>
+                      <button
+                        onClick={() => handleDeletePage(page._id, page.name)}
+                        disabled={deletePage.isPending}
+                        className="p-2 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                        title="Delete"
+                      >
+                        {deletePage.isPending ? (
+                          <Loader2 className="w-4 h-4 text-red-500 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="text-xs text-slate-400 mt-2">
+                    Updated: {new Date(page.updated_at).toLocaleDateString()}
+                  </div>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
+
+          {/* Infinite Scroll Trigger */}
+          <div ref={observerTarget} className="flex justify-center py-8">
+            {isFetchingNextPage && (
+              <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
+            )}
+            {!hasNextPage && allPages.length > 0 && (
+              <p className="text-slate-500 text-sm">No more pages to load</p>
+            )}
+          </div>
+        </>
+      )}
 
       {/* Create Page Modal */}
       {showCreateModal && (

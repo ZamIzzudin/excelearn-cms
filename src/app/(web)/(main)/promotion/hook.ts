@@ -1,5 +1,11 @@
 /** @format */
-import { useMutation, useQuery, UseQueryResult } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  UseQueryResult,
+  useInfiniteQuery,
+  UseInfiniteQueryResult,
+} from "@tanstack/react-query";
 
 import {
   PromoListService,
@@ -9,24 +15,45 @@ import {
   UpdateService,
 } from "./handler";
 
-export const usePromo = (): UseQueryResult<any> => {
-  const queryResult = useQuery({
-    queryKey: ["promo_list"],
-    queryFn: async () => {
+interface UsePromoParams {
+  promo_name?: string;
+  is_active?: boolean | string;
+  sort_order?: string;
+}
+
+export const usePromo = (
+  params: UsePromoParams = {}
+): UseInfiniteQueryResult<any> => {
+  const { promo_name, is_active, sort_order = "desc" } = params;
+
+  return useInfiniteQuery({
+    queryKey: ["promo_list", promo_name, is_active, sort_order],
+    queryFn: async ({ pageParam = 1 }) => {
       try {
-        const { data, status } = await PromoListService();
+        const { data, status } = await PromoListService({
+          page: pageParam,
+          promo_name,
+          is_active,
+          sort_order,
+        });
 
         if (status !== 200) throw new Error();
 
         return data;
       } catch (e) {
-        return [];
+        return { data: [], pagination: {} };
       }
     },
+    getNextPageParam: (lastPage) => {
+      // Return next page number if has_next is true, otherwise return undefined
+      if (lastPage?.pagination?.has_next) {
+        return lastPage.pagination.current_page + 1;
+      }
+      return undefined;
+    },
+    initialPageParam: 1,
     refetchOnWindowFocus: false,
   });
-
-  return queryResult;
 };
 
 export const useCreatePromo = () => {

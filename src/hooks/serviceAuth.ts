@@ -11,13 +11,14 @@ export async function Login(payload: { username: string; password: string }) {
     const { status, message, ...user } = data;
 
     if (status !== 200) throw new Error(message);
-
+    console.log();
     return {
       status,
       message,
       user,
     };
   } catch (error: any) {
-    return error.response.data;
+    console.error(error.response);
+    return "Login Failed";
   }
 }
