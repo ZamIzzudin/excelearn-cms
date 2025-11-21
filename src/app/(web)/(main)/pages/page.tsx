@@ -18,6 +18,10 @@ export default function PagesPage() {
   const [newPageTitle, setNewPageTitle] = useState("");
   const [newPageSlug, setNewPageSlug] = useState("");
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [selected, setSelected] = useState<any>(null);
+  const [showModal, setShowModal] = useState<"NONE" | "PUBLISH" | "DELETE">(
+    "NONE"
+  );
   const router = useRouter();
   const observerTarget = useRef(null);
 
@@ -39,8 +43,9 @@ export default function PagesPage() {
   });
 
   // Delete mutation
-  const deletePage = useDeletePage();
-  const publishPage = useTogglePublishPage();
+  const { mutate: deletePage, isPending: deletePending } = useDeletePage();
+  const { mutate: publishPage, isPending: publishPending } =
+    useTogglePublishPage();
 
   // Infinite scroll observer
   useEffect(() => {
@@ -89,30 +94,28 @@ export default function PagesPage() {
     router.push(`/pages/editor?id=${page._id}`);
   };
 
-  const handleDeletePage = async (pageId: string, pageName: string) => {
-    if (confirm(`Are you sure you want to delete "${pageName}"?`)) {
-      try {
-        await deletePage.mutateAsync(pageId);
+  const handleDeletePage = (pageId: string) => {
+    deletePage(pageId, {
+      onSuccess: () => {
         Notification("success", "Page deleted successfully!");
-        // Refetch to update list
         refetch();
-      } catch (error: any) {
+      },
+      onError: (error) => {
         Notification("error", error.message || "Failed to delete page");
-      }
-    }
+      },
+    });
   };
 
-  const handlePublishPage = async (pageId: string, pageName: string) => {
-    if (confirm(`Are you sure you want to publish "${pageName}"?`)) {
-      try {
-        await publishPage.mutateAsync(pageId);
+  const handlePublishPage = async (pageId: string) => {
+    publishPage(pageId, {
+      onSuccess: () => {
         Notification("success", "Page publish successfully!");
-        // Refetch to update list
         refetch();
-      } catch (error: any) {
-        Notification("error", error.message || "Failed to publish page");
-      }
-    }
+      },
+      onError: (error) => {
+        Notification("error", error.message || "Failed to publisg page");
+      },
+    });
   };
 
   return (
@@ -271,19 +274,30 @@ export default function PagesPage() {
 
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => handlePublishPage(page._id, page.name)}
+                        onClick={() => {
+                          setSelected(page);
+                          setShowModal("PUBLISH");
+                        }}
+                        disabled={publishPending}
                         className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                         title="Preview"
                       >
-                        <Eye className="w-4 h-4 text-slate-500" />
+                        {publishPending ? (
+                          <Loader2 className="w-4 h-4 text-slate-500 animate-spin" />
+                        ) : (
+                          <Eye className="w-4 h-4 text-slate-500" />
+                        )}
                       </button>
                       <button
-                        onClick={() => handleDeletePage(page._id, page.name)}
-                        disabled={deletePage.isPending}
+                        onClick={() => {
+                          setSelected(page);
+                          setShowModal("DELETE");
+                        }}
+                        disabled={deletePending}
                         className="p-2 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                         title="Delete"
                       >
-                        {deletePage.isPending ? (
+                        {deletePending ? (
                           <Loader2 className="w-4 h-4 text-red-500 animate-spin" />
                         ) : (
                           <Trash2 className="w-4 h-4 text-red-500" />
@@ -375,6 +389,57 @@ export default function PagesPage() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      {selected && showModal !== "NONE" ? (
+        <div className="fixed bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 top-0 right-0 left-0 bottom-0 m-0">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md text-center">
+            <h2 className="text-xl font-bold text-slate-800 mb-6">
+              {showModal === "DELETE"
+                ? "Delete Page"
+                : selected.status.toUpperCase() === "DRAFT"
+                ? "Publish Page"
+                : "Unpublish Page"}
+            </h2>
+            {showModal === "DELETE" ? (
+              <p>Are you sure you want to delete this page?</p>
+            ) : selected.status.toUpperCase() === "DRAFT" ? (
+              <p>Are you sure you want to publish this page?</p>
+            ) : (
+              <p>Are you sure you want to unpublish this page?</p>
+            )}
+
+            <div className="flex gap-5 mt-8 justify-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setSelected(null);
+                }}
+                className="px-10 py-3 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={deletePending || publishPending}
+              >
+                No
+              </button>
+              <button
+                className="flex items-center justify-center gap-2 px-10 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                type="button"
+                onClick={() => {
+                  if (showModal === "DELETE") {
+                    handleDeletePage(selected._id);
+                    setShowModal("NONE");
+                  } else {
+                    handlePublishPage(selected._id);
+                    setShowModal("NONE");
+                  }
+                }}
+                disabled={deletePending || publishPending}
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

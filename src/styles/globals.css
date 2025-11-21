@@ -46,3 +46,245 @@ body {
 .ant-upload-wrapper .ant-upload-select {
   width: 100%;
 }
+
+/* Grid System for Dynamic Pages */
+
+/* Ensure proper grid display */
+.dynamic-page-content {
+  width: 100%;
+}
+
+.dynamic-page-content .grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+}
+
+/* Column span classes */
+.col-span-1 {
+  grid-column: span 1 / span 1;
+}
+.col-span-2 {
+  grid-column: span 2 / span 2;
+}
+.col-span-3 {
+  grid-column: span 3 / span 3;
+}
+.col-span-4 {
+  grid-column: span 4 / span 4;
+}
+.col-span-5 {
+  grid-column: span 5 / span 5;
+}
+.col-span-6 {
+  grid-column: span 6 / span 6;
+}
+.col-span-7 {
+  grid-column: span 7 / span 7;
+}
+.col-span-8 {
+  grid-column: span 8 / span 8;
+}
+.col-span-9 {
+  grid-column: span 9 / span 9;
+}
+.col-span-10 {
+  grid-column: span 10 / span 10;
+}
+.col-span-11 {
+  grid-column: span 11 / span 11;
+}
+.col-span-12 {
+  grid-column: span 12 / span 12;
+}
+
+/* Responsive breakpoints */
+@media (min-width: 768px) {
+  .md\:col-span-1 {
+    grid-column: span 1 / span 1;
+  }
+  .md\:col-span-2 {
+    grid-column: span 2 / span 2;
+  }
+  .md\:col-span-3 {
+    grid-column: span 3 / span 3;
+  }
+  .md\:col-span-4 {
+    grid-column: span 4 / span 4;
+  }
+  .md\:col-span-5 {
+    grid-column: span 5 / span 5;
+  }
+  .md\:col-span-6 {
+    grid-column: span 6 / span 6;
+  }
+  .md\:col-span-7 {
+    grid-column: span 7 / span 7;
+  }
+  .md\:col-span-8 {
+    grid-column: span 8 / span 8;
+  }
+  .md\:col-span-9 {
+    grid-column: span 9 / span 9;
+  }
+  .md\:col-span-10 {
+    grid-column: span 10 / span 10;
+  }
+  .md\:col-span-11 {
+    grid-column: span 11 / span 11;
+  }
+  .md\:col-span-12 {
+    grid-column: span 12 / span 12;
+  }
+}
+
+@media (min-width: 1024px) {
+  .lg\:col-span-1 {
+    grid-column: span 1 / span 1;
+  }
+  .lg\:col-span-2 {
+    grid-column: span 2 / span 2;
+  }
+  .lg\:col-span-3 {
+    grid-column: span 3 / span 3;
+  }
+  .lg\:col-span-4 {
+    grid-column: span 4 / span 4;
+  }
+  .lg\:col-span-5 {
+    grid-column: span 5 / span 5;
+  }
+  .lg\:col-span-6 {
+    grid-column: span 6 / span 6;
+  }
+  .lg\:col-span-7 {
+    grid-column: span 7 / span 7;
+  }
+  .lg\:col-span-8 {
+    grid-column: span 8 / span 8;
+  }
+  .lg\:col-span-9 {
+    grid-column: span 9 / span 9;
+  }
+  .lg\:col-span-10 {
+    grid-column: span 10 / span 10;
+  }
+  .lg\:col-span-11 {
+    grid-column: span 11 / span 11;
+  }
+  .lg\:col-span-12 {
+    grid-column: span 12 / span 12;
+  }
+}
+
+/* Page Editor specific styles */
+.page-editor-canvas .grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1rem;
+}
+
+/* Drag and drop visual feedback */
+.drag-over {
+  border-top: 4px solid #4f46e5;
+  padding-top: 1rem;
+}
+
+.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+/* Component wrapper styling */
+.component-wrapper {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.component-wrapper:hover {
+  transform: scale(1.01);
+}
+
+.component-wrapper.selected {
+  box-shadow: 0 0 0 2px #4f46e5;
+  border-radius: 0.5rem;
+}
+
+/* Smooth transitions */
+.transition-layout {
+  transition: grid-column 0.3s ease, width 0.3s ease;
+}
+
+/* Mobile-first approach */
+@media (max-width: 767px) {
+  .dynamic-page-content .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dynamic-page-content [class*="col-span-"] {
+    grid-column: span 12 / span 12;
+  }
+}
+
+/* Ensure images are responsive */
+.dynamic-page-content img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Button styling consistency */
+.dynamic-page-content button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.dynamic-page-content button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* List styling */
+.dynamic-page-content ul,
+.dynamic-page-content ol {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.dynamic-page-content li {
+  margin-bottom: 0.5rem;
+}
+
+/* Heading hierarchy */
+.dynamic-page-content h1,
+.dynamic-page-content h2,
+.dynamic-page-content h3,
+.dynamic-page-content h4,
+.dynamic-page-content h5,
+.dynamic-page-content h6 {
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* Text content spacing */
+.dynamic-page-content p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Background image handling */
+.bg-image-wrapper {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+.bg-image-wrapper::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: inherit;
+  z-index: -1;
+}

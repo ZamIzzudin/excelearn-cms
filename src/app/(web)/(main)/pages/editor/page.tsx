@@ -117,6 +117,7 @@ export default function PageEditor() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bgImageInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
 
   const pageId = searchParams.get("id");
   const isNew = searchParams.get("new") === "true";
@@ -144,6 +145,9 @@ export default function PageEditor() {
   const [draggedComponent, setDraggedComponent] = useState<any>(null);
   const [draggedCanvasComponent, setDraggedCanvasComponent] =
     useState<any>(null);
+  const [dragOverComponent, setDragOverComponent] = useState<string | null>(
+    null
+  );
   const [viewMode, setViewMode] = useState<"desktop" | "tablet" | "mobile">(
     "desktop"
   );
@@ -164,21 +168,17 @@ export default function PageEditor() {
   // Load existing page data
   useEffect(() => {
     if (pageDetailData) {
-      // Process template to handle server image format
       const processedTemplate = (pageDetailData.template || []).map(
         (comp: any) => {
           const processedComp = { ...comp };
 
-          // Convert server background image format to URL string for editor
           if (comp.props?.backgroundImage?.url) {
             processedComp.props = {
               ...comp.props,
               backgroundImage: comp.props.backgroundImage.url,
-              backgroundImageData: comp.props.backgroundImage, // Keep original for updates
+              backgroundImageData: comp.props.backgroundImage,
             };
           }
-
-          // Image components already have URL in src, no conversion needed
 
           return processedComp;
         }
@@ -225,11 +225,9 @@ export default function PageEditor() {
   const getResponsiveColumns = (originalColumns: number) => {
     switch (viewMode) {
       case "mobile":
-        return originalColumns > 6 ? 12 : originalColumns;
+        return 12; // Always full width on mobile
       case "tablet":
-        if (originalColumns > 8) return 12;
-        if (originalColumns <= 4) return originalColumns;
-        return Math.min(originalColumns + 2, 12);
+        return originalColumns > 6 ? 12 : originalColumns * 2; // Double columns on tablet, max 12
       default:
         return originalColumns;
     }
@@ -238,11 +236,11 @@ export default function PageEditor() {
   const getViewportClass = () => {
     switch (viewMode) {
       case "mobile":
-        return "max-w-sm mx-auto";
+        return "max-w-sm";
       case "tablet":
-        return "max-w-2xl mx-auto";
+        return "max-w-2xl";
       default:
-        return "max-w-6xl mx-auto";
+        return "max-w-6xl";
     }
   };
 
@@ -251,12 +249,15 @@ export default function PageEditor() {
   };
 
   const handleCanvasDragStart = (e: React.DragEvent, component: any) => {
+    e.stopPropagation();
     setDraggedCanvasComponent(component);
     e.dataTransfer.effectAllowed = "move";
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    setDragOverComponent(null);
 
     if (draggedComponent) {
       const newComponent = {
@@ -278,6 +279,7 @@ export default function PageEditor() {
   const handleCanvasDrop = (e: React.DragEvent, targetComponent: any) => {
     e.preventDefault();
     e.stopPropagation();
+    setDragOverComponent(null);
 
     if (
       draggedCanvasComponent &&
@@ -304,6 +306,21 @@ export default function PageEditor() {
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleCanvasDragOver = (e: React.DragEvent, componentId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (draggedCanvasComponent && draggedCanvasComponent.id !== componentId) {
+      setDragOverComponent(componentId);
+    }
+  };
+
+  const handleDragEnd = () => {
+    setDraggedComponent(null);
+    setDraggedCanvasComponent(null);
+    setDragOverComponent(null);
   };
 
   const updateComponentProps = (componentId: string, newProps: any) => {
@@ -379,68 +396,54 @@ export default function PageEditor() {
       formData.append("path", pageData.path);
       formData.append("status", pageData.status);
 
-      // Create a clean template without base64 data
       const cleanTemplate = pageData.template.map((comp: any) => {
         const cleanComp = { ...comp };
 
-        // Handle background image
         if (comp.props?.backgroundImage?.startsWith?.("data:")) {
-          // New upload: find the file for this background image
           const imageFile = pageData.uploadedImages.find(
             (img: any) => img.data === comp.props.backgroundImage
           )?.file;
 
           if (imageFile) {
-            // Add file to FormData
             formData.append(`bg_${comp.id}`, imageFile);
-            // Mark in template that this component has a background image to be uploaded
             cleanComp.props = { ...comp.props, backgroundImage: "__UPLOAD__" };
           }
         } else if (comp.props?.backgroundImageData?.url) {
-          // Existing server image: preserve the original format
           cleanComp.props = {
             ...comp.props,
             backgroundImage: comp.props.backgroundImageData,
           };
-          delete cleanComp.props.backgroundImageData; // Remove helper property
+          delete cleanComp.props.backgroundImageData;
         } else if (
           comp.props?.backgroundImage &&
           typeof comp.props.backgroundImage === "string"
         ) {
-          // Regular URL (not base64, not server format)
           cleanComp.props = {
             ...comp.props,
             backgroundImage: comp.props.backgroundImage,
           };
         } else if (comp.props?.backgroundImage === null) {
-          // Explicitly set to null
           cleanComp.props = { ...comp.props, backgroundImage: null };
         }
 
-        // Handle image component src
         if (comp.type === "image" && comp.props?.src?.startsWith?.("data:")) {
-          // New upload
           const imageFile = pageData.uploadedImages.find(
             (img: any) => img.data === comp.props.src
           )?.file;
 
           if (imageFile) {
             formData.append(`img_${comp.id}`, imageFile);
-            // Mark that this component's src will be uploaded
             cleanComp.props = { ...comp.props, src: "__UPLOAD__" };
           }
         } else if (comp.props?.src) {
-          // Keep existing URL (already on server or external URL)
           cleanComp.props = { ...comp.props, src: comp.props.src };
         }
 
         return cleanComp;
       });
 
-      // Append clean template without base64 data
       formData.append("template", JSON.stringify(cleanTemplate));
 
-      // Handle OG image in metadata
       const cleanMetadata = { ...metadata };
       if (metadata.ogImage?.startsWith?.("data:")) {
         const ogImageFile = pageData.uploadedImages.find(
@@ -461,13 +464,11 @@ export default function PageEditor() {
           data: formData,
         });
         Notification("success", result.message || "Page updated successfully!");
+        router.back();
       } else {
         const result = await createPage.mutateAsync(formData);
         Notification("success", result.message || "Page created successfully!");
-
-        if (result?.data?._id) {
-          router.push(`/pages/editor?id=${result.data._id}`);
-        }
+        router.back();
       }
     } catch (error: any) {
       Notification("error", error.message || "Failed to save page");
@@ -554,7 +555,7 @@ export default function PageEditor() {
     <div className="h-screen flex bg-slate-50 relative overflow-hidden">
       {/* Component Library Panel */}
       {showComponentPanel && (
-        <div className="w-64 lg:w-80 bg-white border-r border-slate-200 flex flex-col flex-shrink-0">
+        <div className="w-64 lg:w-80 bg-white border-r border-slate-200 flex flex-col flex-shrink-0 z-30">
           <div className="p-4 border-b border-slate-200 flex justify-between items-center">
             <h2 className="font-semibold text-slate-800">Components</h2>
             <button
@@ -581,7 +582,8 @@ export default function PageEditor() {
                           key={component.id}
                           draggable
                           onDragStart={() => handleDragStart(component)}
-                          className="p-3 border border-slate-200 rounded-lg cursor-grab hover:bg-slate-50 transition-colors active:cursor-grabbing"
+                          onDragEnd={handleDragEnd}
+                          className="p-3 border border-slate-200 rounded-lg cursor-grab hover:bg-slate-50 transition-colors active:cursor-grabbing hover:border-indigo-300"
                         >
                           <Icon className="w-5 h-5 text-slate-600 mb-2" />
                           <p className="text-xs font-medium text-slate-700">
@@ -601,7 +603,7 @@ export default function PageEditor() {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Toolbar */}
         <div className="bg-white border-b border-slate-200 p-4 flex-shrink-0">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               {!showComponentPanel && (
                 <button
@@ -684,28 +686,34 @@ export default function PageEditor() {
         </div>
 
         {/* Canvas */}
-        <div className="flex-1 overflow-auto p-4 lg:p-8">
+        <div className="flex-1 overflow-auto p-4 lg:p-8 bg-slate-100">
           <div
-            className={`mx-auto bg-white rounded-lg shadow-sm min-h-[90dvh] transition-all duration-300 ${getViewportClass()}`}
+            className={`mx-auto bg-white rounded-lg shadow-lg min-h-[600px] transition-all duration-300 ${getViewportClass()}`}
           >
             <div
+              ref={dropZoneRef}
               className="p-6 min-h-full"
               onDrop={handleDrop}
               onDragOver={handleDragOver}
             >
               {pageData.template.length === 0 ? (
-                <div className="text-center py-20 text-slate-500">
+                <div className="text-center py-20 text-slate-400 border-2 border-dashed border-slate-200 rounded-lg">
                   <Layout className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>Drag components here to start building your page</p>
+                  <p className="text-lg font-medium mb-2">Empty Canvas</p>
+                  <p className="text-sm">
+                    Drag components here to start building
+                  </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-12 gap-4">
+                <div className="space-y-4">
                   {pageData.template
                     .sort((a: any, b: any) => a.order - b.order)
                     .map((component: any) => {
                       const responsiveColumns = getResponsiveColumns(
                         component.gridColumn
                       );
+                      const gridColClass = `col-span-${responsiveColumns}`;
+
                       return (
                         <div
                           key={component.id}
@@ -714,9 +722,17 @@ export default function PageEditor() {
                             handleCanvasDragStart(e, component)
                           }
                           onDrop={(e) => handleCanvasDrop(e, component)}
-                          onDragOver={handleDragOver}
-                          className={`col-span-${responsiveColumns} relative group cursor-pointer transition-all duration-200 hover:scale-[1.02]`}
-                          onClick={() => {
+                          onDragOver={(e) =>
+                            handleCanvasDragOver(e, component.id)
+                          }
+                          onDragEnd={handleDragEnd}
+                          className={`relative group transition-all duration-200 ${
+                            dragOverComponent === component.id
+                              ? "border-t-4 border-indigo-500 pt-4"
+                              : ""
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setSelectedComponent(component.id);
                             setShowPropertiesPanel(true);
                           }}
@@ -725,34 +741,51 @@ export default function PageEditor() {
                             className={`relative ${
                               selectedComponent === component.id
                                 ? "ring-2 ring-indigo-500 ring-offset-2"
-                                : ""
-                            } rounded-lg transition-all`}
+                                : "hover:ring-2 hover:ring-slate-300"
+                            } rounded-lg transition-all cursor-pointer`}
+                            style={{
+                              width:
+                                viewMode === "desktop"
+                                  ? `${(component.gridColumn / 12) * 100}%`
+                                  : viewMode === "tablet"
+                                  ? `${Math.min(
+                                      (component.gridColumn / 12) * 100 * 1.5,
+                                      100
+                                    )}%`
+                                  : "100%",
+                            }}
                           >
                             {renderComponent(component)}
 
+                            {/* Drag Handle */}
                             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <div className="bg-slate-800 text-white p-1 rounded cursor-grab active:cursor-grabbing">
-                                <GripVertical className="w-3 h-3" />
+                              <div className="bg-slate-800 text-white p-1.5 rounded cursor-grab active:cursor-grabbing shadow-lg">
+                                <GripVertical className="w-4 h-4" />
                               </div>
                             </div>
-                          </div>
 
-                          {selectedComponent === component.id && (
-                            <div className="absolute -top-8 left-0 flex items-center gap-2 bg-indigo-600 text-white px-2 py-1 rounded text-xs z-10">
-                              <span className="capitalize">
-                                {component.type}
-                              </span>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteComponent(component.id);
-                                }}
-                                className="hover:bg-indigo-700 rounded px-1 transition-colors"
-                              >
-                                ×
-                              </button>
-                            </div>
-                          )}
+                            {/* Component Label */}
+                            {selectedComponent === component.id && (
+                              <div className="absolute -top-9 left-0 flex items-center gap-2 bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs z-10 shadow-lg">
+                                <span className="capitalize font-medium">
+                                  {component.type}
+                                </span>
+                                <span className="text-indigo-200">•</span>
+                                <span className="text-indigo-200">
+                                  {component.gridColumn}/12
+                                </span>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteComponent(component.id);
+                                  }}
+                                  className="ml-1 hover:bg-indigo-700 rounded px-1.5 py-0.5 transition-colors"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       );
                     })}
@@ -763,10 +796,10 @@ export default function PageEditor() {
         </div>
       </div>
 
-      {/* Properties Panel */}
+      {/* Properties Panel - Rest of the code stays the same */}
       {selectedComponentData &&
         (showPropertiesPanel || window.innerWidth >= 1024) && (
-          <div className="w-80 bg-white border-l border-slate-200 flex flex-col flex-shrink-0 lg:relative absolute right-0 top-0 h-full z-20">
+          <div className="w-80 bg-white border-l border-slate-200 flex flex-col flex-shrink-0 lg:relative absolute right-0 top-0 h-full z-20 shadow-2xl lg:shadow-none">
             <div className="p-4 border-b border-slate-200 flex justify-between items-center">
               <h2 className="font-semibold text-slate-800">Properties</h2>
               <button
@@ -774,7 +807,7 @@ export default function PageEditor() {
                   setSelectedComponent(null);
                   setShowPropertiesPanel(false);
                 }}
-                className="p-2 hover:bg-slate-100 rounded-lg"
+                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
               >
                 <X className="w-4 h-4 text-slate-600" />
               </button>
@@ -782,9 +815,9 @@ export default function PageEditor() {
 
             <div className="flex-1 overflow-y-auto p-4 space-y-6">
               {/* Grid Column Control */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Width ({selectedComponentData.gridColumn}/12 columns)
+              <div className="bg-slate-50 p-4 rounded-lg">
+                <label className="block text-sm font-medium text-slate-700 mb-3">
+                  Width (Grid Columns)
                 </label>
                 <input
                   type="range"
@@ -797,12 +830,14 @@ export default function PageEditor() {
                       parseInt(e.target.value)
                     )
                   }
-                  className="w-full accent-indigo-600"
+                  className="w-full accent-indigo-600 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
                 />
-                <div className="flex justify-between text-xs text-slate-500 mt-1">
+                <div className="flex justify-between text-xs text-slate-500 mt-2">
                   <span>1 col</span>
-                  <span className="font-medium">
-                    {Math.round((selectedComponentData.gridColumn / 12) * 100)}%
+                  <span className="font-semibold text-indigo-600 text-sm">
+                    {selectedComponentData.gridColumn} / 12 (
+                    {Math.round((selectedComponentData.gridColumn / 12) * 100)}
+                    %)
                   </span>
                   <span>12 col</span>
                 </div>
@@ -814,7 +849,7 @@ export default function PageEditor() {
                 selectedComponentData.type === "button") && (
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Alignment
+                    Text Alignment
                   </label>
                   <div className="flex gap-2">
                     {[
@@ -941,7 +976,6 @@ export default function PageEditor() {
                       Image Source
                     </label>
                     <div className="space-y-3">
-                      {/* Uploaded Images Gallery */}
                       {pageData.uploadedImages.length > 0 && (
                         <div>
                           <p className="text-xs text-slate-600 mb-2">
@@ -974,7 +1008,6 @@ export default function PageEditor() {
                         </div>
                       )}
 
-                      {/* Upload New Image */}
                       <button
                         onClick={() => fileInputRef.current?.click()}
                         className="w-full p-3 border-2 border-dashed border-slate-200 rounded-lg hover:border-indigo-300 transition-colors flex items-center justify-center gap-2 text-slate-600 hover:text-indigo-600"
@@ -983,7 +1016,6 @@ export default function PageEditor() {
                         Upload New Image
                       </button>
 
-                      {/* Or use URL */}
                       <div>
                         <p className="text-xs text-slate-600 mb-2">
                           Or enter URL:
