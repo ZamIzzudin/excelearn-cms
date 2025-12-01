@@ -57,22 +57,12 @@ export default function StatisticsTab() {
 
   const handleEdit = (field: string, value: number) => {
     setEditingField(field);
-    // For K format fields, convert back to K value
-    if (field === "total_participant" || field === "total_training_completed") {
-      setTempValue((value / 1000).toString());
-    } else {
-      setTempValue(value.toString());
-    }
+    setTempValue(value.toString());
   };
 
   const handleSaveField = (field: string) => {
     const numValue = parseFloat(tempValue) || 0;
     let finalValue = numValue;
-
-    // For K format fields, multiply by 1000
-    if (field === "total_participant" || field === "total_training_completed") {
-      finalValue = numValue * 1000;
-    }
 
     setFormData((prev: any) => ({
       ...prev,
@@ -88,13 +78,6 @@ export default function StatisticsTab() {
     setTempValue("");
   };
 
-  const formatNumber = (num: number, useK: boolean = false): string => {
-    if (useK && num >= 1000) {
-      return (num / 1000).toFixed(1).replace(/\.0$/, "") + "K";
-    }
-    return num.toLocaleString();
-  };
-
   const statCards = [
     {
       field: "year_experience",
@@ -103,7 +86,6 @@ export default function StatisticsTab() {
       unit: "Years",
       icon: Award,
       color: "indigo",
-      useK: false,
     },
     {
       field: "total_participant",
@@ -112,7 +94,6 @@ export default function StatisticsTab() {
       unit: "Participants",
       icon: Users,
       color: "green",
-      useK: true,
     },
     {
       field: "total_topic_class",
@@ -121,7 +102,6 @@ export default function StatisticsTab() {
       unit: "Topics",
       icon: BookOpen,
       color: "purple",
-      useK: false,
     },
     {
       field: "total_training_completed",
@@ -130,7 +110,6 @@ export default function StatisticsTab() {
       unit: "Trainings",
       icon: GraduationCap,
       color: "orange",
-      useK: true,
     },
   ];
 
@@ -296,11 +275,6 @@ export default function StatisticsTab() {
                             }
                           }}
                         />
-                        {stat.useK && (
-                          <span className="text-xl font-bold text-slate-400">
-                            K
-                          </span>
-                        )}
                       </div>
                       <div className="flex gap-2">
                         <button
@@ -318,16 +292,11 @@ export default function StatisticsTab() {
                           Cancel
                         </button>
                       </div>
-                      {stat.useK && (
-                        <p className="text-xs text-slate-500 text-center">
-                          1K = 1,000 {stat.unit.toLowerCase()}
-                        </p>
-                      )}
                     </div>
                   ) : (
                     <>
                       <div className={`text-4xl font-bold ${colors.text}`}>
-                        {formatNumber(stat.value, stat.useK)}
+                        {stat.value}
                       </div>
                       <p className="text-sm text-slate-500">{stat.unit}</p>
                     </>

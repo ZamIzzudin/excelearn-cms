@@ -12,7 +12,7 @@ const tabs = [
   { id: "statistics", name: "Statistics" },
   { id: "partners", name: "Partners" },
   { id: "testimonials", name: "Testimonials" },
-  { id: "metadata", name: "Metadata" },
+  // { id: "metadata", name: "Metadata" },
 ];
 
 export default function ContentPage() {
@@ -56,7 +56,7 @@ export default function ContentPage() {
           {activeTab === "statistics" && <StatisticsTab />}
           {activeTab === "partners" && <PartnersTab />}
           {activeTab === "testimonials" && <TestimonialsTab />}
-          {activeTab === "metadata" && <MetadataTab />}
+          {/* {activeTab === "metadata" && <MetadataTab />} */}
         </div>
       </div>
     </div>

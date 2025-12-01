@@ -95,21 +95,21 @@ const availableComponents = [
       backgroundImage: null,
     },
   },
-  {
-    id: "list",
-    name: "List",
-    icon: List,
-    category: "Basic",
-    defaultProps: {
-      items: ["Item 1", "Item 2", "Item 3"],
-      listStyle: "disc",
-      fontSize: 16,
-      color: "#000000",
-      padding: 16,
-      textAlign: "left",
-      backgroundImage: null,
-    },
-  },
+  // {
+  //   id: "list",
+  //   name: "List",
+  //   icon: List,
+  //   category: "Basic",
+  //   defaultProps: {
+  //     items: ["Item 1", "Item 2", "Item 3"],
+  //     listStyle: "disc",
+  //     fontSize: 16,
+  //     color: "#000000",
+  //     padding: 16,
+  //     textAlign: "left",
+  //     backgroundImage: null,
+  //   },
+  // },
 ];
 
 export default function PageEditor() {
@@ -1161,7 +1161,7 @@ export default function PageEditor() {
               )}
 
               {/* List specific props */}
-              {selectedComponentData.type === "list" && (
+              {/* {selectedComponentData.type === "list" && (
                 <>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -1276,7 +1276,7 @@ export default function PageEditor() {
                     />
                   </div>
                 </>
-              )}
+              )} */}
 
               {/* Common properties */}
               {!selectedComponentData.props.backgroundImage && (
@@ -1337,7 +1337,7 @@ export default function PageEditor() {
               </button>
             </div>
 
-            <div className="space-y-6">
+            {/* <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-slate-800 mb-4">
                   Basic SEO
@@ -1513,7 +1513,7 @@ export default function PageEditor() {
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             <div className="flex gap-3 mt-8 pt-6 border-t border-slate-200">
               <button

@@ -87,6 +87,7 @@ export default function SchedulePage() {
       "schedule_name",
       "schedule_description",
       "schedule_date",
+      "schedule_close_registration_date",
       "schedule_start",
       "schedule_end",
       "location",
@@ -102,6 +103,7 @@ export default function SchedulePage() {
     const sampleData = [
       "Workshop React Advanced [SAMPLE DATA DONT DELETE]",
       "Learn advanced React patterns and best practices",
+      "2025/11/15",
       "2025/11/15",
       "09:00",
       "17:00",
@@ -122,6 +124,7 @@ export default function SchedulePage() {
     const colWidths = [
       { wch: 35 },
       { wch: 50 },
+      { wch: 15 },
       { wch: 15 },
       { wch: 12 },
       { wch: 12 },
@@ -163,6 +166,7 @@ export default function SchedulePage() {
               "schedule_name",
               "schedule_description",
               "schedule_date",
+              "schedule_close_registration_date",
               "schedule_start",
               "schedule_end",
               "location",
@@ -185,7 +189,8 @@ export default function SchedulePage() {
                   console.log(field, value);
                   if (value !== undefined && value !== null && value !== "") {
                     if (
-                      field === "schedule_date" &&
+                      (field === "schedule_date" ||
+                        field === "schedule_close_registration_date") &&
                       typeof value === "number"
                     ) {
                       const EXCEL_DAYS_DIFF = 25569;

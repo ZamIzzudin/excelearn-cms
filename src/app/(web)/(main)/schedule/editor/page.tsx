@@ -42,14 +42,16 @@ export default function ScheduleEditorPage() {
   const [newBenefit, setNewBenefit] = useState({ benefit: null });
 
   useEffect(() => {
-    if (existingSchedule) {
+    if (existingSchedule && scheduleId) {
       const initalData = {
         ...existingSchedule,
         schedule_start: dayjs(existingSchedule.schedule_start, "HH:mm"),
         schedule_end: dayjs(existingSchedule.schedule_end, "HH:mm"),
         schedule_date: dayjs(existingSchedule.schedule_date),
+        schedule_close_registration_date: dayjs(
+          existingSchedule.schedule_close_registration_date
+        ),
       };
-      console.log(initalData);
 
       form.setFieldsValue(initalData);
       setFormAction(initalData);
@@ -60,6 +62,9 @@ export default function ScheduleEditorPage() {
       };
       form.setFieldsValue(initialData);
       setFormAction(initialData);
+    } else {
+      form.resetFields();
+      setFormAction({ benefits: [] });
     }
   }, [existingSchedule, defaultDate, scheduleId]);
 
@@ -90,6 +95,10 @@ export default function ScheduleEditorPage() {
       formData.append("schedule_name", formAction.schedule_name);
       formData.append("schedule_description", formAction.schedule_description);
       formData.append("schedule_date", formAction.schedule_date);
+      formData.append(
+        "schedule_close_registration_date",
+        formAction.schedule_close_registration_date
+      );
       formData.append("location", formAction.location);
       formData.append("schedule_start", formAction.schedule_start);
       formData.append("schedule_end", formAction.schedule_end);
@@ -115,6 +124,8 @@ export default function ScheduleEditorPage() {
         onSuccess: () => {
           Notification("success", "Success Add New Schedule");
           router.back();
+          form.resetFields();
+          setFormAction({ benefits: [] });
         },
         onError: (e) => {
           Notification("error", "Failed to Add New Schedule");
@@ -137,9 +148,23 @@ export default function ScheduleEditorPage() {
       formData.append("schedule_name", formAction.schedule_name);
       formData.append("schedule_description", formAction.schedule_description);
       formData.append("schedule_date", formAction.schedule_date);
+      formData.append(
+        "schedule_close_registration_date",
+        formAction.schedule_close_registration_date
+      );
       formData.append("location", formAction.location);
-      formData.append("schedule_start", formAction.schedule_start);
-      formData.append("schedule_end", formAction.schedule_end);
+      formData.append(
+        "schedule_start",
+        typeof formAction.schedule_start === "string"
+          ? formAction.schedule_start
+          : dayjs(formAction.schedule_start).format("HH:mm")
+      );
+      formData.append(
+        "schedule_end",
+        typeof formAction.schedule_end === "string"
+          ? formAction.schedule_end
+          : dayjs(formAction.schedule_end).format("HH:mm")
+      );
       formData.append("skill_level", formAction.skill_level);
       formData.append("status", formAction.status);
       formData.append("language", formAction.language);
@@ -167,6 +192,8 @@ export default function ScheduleEditorPage() {
           onSuccess: () => {
             Notification("success", "Success to Update Schedule");
             router.back();
+            form.resetFields();
+            setFormAction({ benefits: [] });
           },
           onError: (e) => {
             Notification("error", "Failed to Update Schedule");
@@ -213,15 +240,30 @@ export default function ScheduleEditorPage() {
               Basic Information
             </h2>
             <div className="space-y-4">
-              <InputForm
-                type="text"
-                name="schedule_name"
-                label="Schedule Name"
-                placeholder="Enter product name"
-                required
-                form={formAction}
-                setForm={(e: any) => setFormAction(e)}
-              />
+              <Row gutter={[12, 12]}>
+                <Col span={12}>
+                  <InputForm
+                    type="text"
+                    name="schedule_name"
+                    label="Schedule Name"
+                    placeholder="Enter product name"
+                    required
+                    form={formAction}
+                    setForm={(e: any) => setFormAction(e)}
+                  />
+                </Col>
+                <Col span={12}>
+                  <InputForm
+                    type="text"
+                    name="location"
+                    label="Location"
+                    placeholder="Enter Location"
+                    required
+                    form={formAction}
+                    setForm={(e: any) => setFormAction(e)}
+                  />
+                </Col>
+              </Row>
               <Row gutter={[12, 12]}>
                 <Col span={12}>
                   <InputForm
@@ -236,10 +278,10 @@ export default function ScheduleEditorPage() {
                 </Col>
                 <Col span={12}>
                   <InputForm
-                    type="text"
-                    name="location"
-                    label="Location"
-                    placeholder="Enter Location"
+                    type="date"
+                    name="schedule_close_registration_date"
+                    label="Close Registration"
+                    placeholder="Enter Date"
                     required
                     form={formAction}
                     setForm={(e: any) => setFormAction(e)}
@@ -470,7 +512,11 @@ export default function ScheduleEditorPage() {
           <div className="flex gap-3">
             <button
               type="button"
-              onClick={() => router.back()}
+              onClick={() => {
+                router.back();
+                form.resetFields();
+                setFormAction({ benefits: [] });
+              }}
               className="flex-1 px-6 py-3 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
               disabled={isPending}
             >
