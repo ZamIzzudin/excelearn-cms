@@ -219,3 +219,47 @@ export async function UpdateStatisticService(payload: any) {
     return error?.response?.data;
   }
 }
+
+export async function SocmedListService() {
+  try {
+    const { data: response } = await AxiosClient.get("/socmed/list");
+
+    const { status, message, data } = response;
+
+    if (status !== 200) throw new Error(message);
+
+    return {
+      status,
+      message,
+      data,
+    };
+  } catch (error: any) {
+    console.log(error);
+    return error.message;
+  }
+}
+
+export async function UpdateSocmedService(id: string, payload: any) {
+  try {
+    const { data: response } = await AxiosClient.put(
+      `/socmed/adjust/${id}`,
+      payload,
+      headers
+    );
+
+    const { status, message, data } = response;
+
+    if (status !== 200) throw new Error(message);
+
+    return {
+      status,
+      message,
+      data,
+    };
+  } catch (error: any) {
+    console.log(error);
+    return error?.response?.data;
+  }
+}
+
+

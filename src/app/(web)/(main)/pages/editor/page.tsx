@@ -85,14 +85,30 @@ const availableComponents = [
       text: "Click Me",
       backgroundColor: "#3B82F6",
       color: "#FFFFFF",
-      padding: "12px 24px",
-      borderRadius: 8,
+      padding: "12px 32px",
+      borderRadius: 999,
       fontSize: 16,
       fontWeight: "medium",
       border: "none",
       cursor: "pointer",
       textAlign: "center",
       backgroundImage: null,
+    },
+  },
+  {
+    id: "container",
+    name: "Container",
+    icon: Layout,
+    category: "Layout",
+    defaultProps: {
+      backgroundColor: "transparent",
+      backgroundImage: null,
+      padding: 24,
+      borderRadius: 0,
+      border: "1px solid #E2E8F0",
+      gridColumns: 1,
+      gridGap: 16,
+      children: [],
     },
   },
   // {
@@ -123,6 +139,7 @@ export default function PageEditor() {
   const isNew = searchParams.get("new") === "true";
   const titleParam = searchParams.get("title");
   const slugParam = searchParams.get("slug");
+  const typeParam = searchParams.get("type");
 
   // Hooks
   const { data: pageDetailData, isLoading: isLoadingDetail } =
@@ -134,6 +151,7 @@ export default function PageEditor() {
     id: null,
     name: titleParam || "",
     path: slugParam || "",
+    type: typeParam || "Other",
     status: "DRAFT",
     template: [],
     uploadedImages: [],
@@ -188,6 +206,7 @@ export default function PageEditor() {
         id: pageDetailData._id,
         name: pageDetailData.name,
         path: pageDetailData.path,
+        type: pageDetailData.type || "Other",
         status: pageDetailData.status,
         template: processedTemplate,
         uploadedImages: [],
@@ -215,12 +234,13 @@ export default function PageEditor() {
         id: null,
         name: titleParam,
         path: slugParam,
+        type: typeParam || "Other",
         status: "DRAFT",
         template: [],
         uploadedImages: [],
       });
     }
-  }, [isNew, titleParam, slugParam]);
+  }, [isNew, titleParam, slugParam, typeParam]);
 
   const getResponsiveColumns = (originalColumns: number) => {
     switch (viewMode) {
@@ -394,6 +414,7 @@ export default function PageEditor() {
       const formData = new FormData();
       formData.append("name", pageData.name);
       formData.append("path", pageData.path);
+      formData.append("type", pageData.type || "Other");
       formData.append("status", pageData.status);
 
       const cleanTemplate = pageData.template.map((comp: any) => {
@@ -532,6 +553,28 @@ export default function PageEditor() {
             ))}
           </ul>
         );
+      case "container":
+        return (
+          <div
+            style={{
+              ...style,
+              display: "grid",
+              gridTemplateColumns: `repeat(${props.gridColumns || 1}, 1fr)`,
+              gap: props.gridGap || 16,
+              minHeight: props.children?.length === 0 ? "100px" : "auto",
+            }}
+          >
+            {props.children && props.children.length > 0 ? (
+              props.children.map((child: any) => (
+                <div key={child.id}>{renderComponent(child)}</div>
+              ))
+            ) : (
+              <div className="col-span-full flex items-center justify-center text-slate-400 text-sm py-8">
+                Drop components here
+              </div>
+            )}
+          </div>
+        );
       default:
         return <div style={style}>Unknown component</div>;
     }
@@ -567,7 +610,7 @@ export default function PageEditor() {
           </div>
 
           <div className="flex-1 overflow-y-auto p-4">
-            {["Basic", "Media", "Interactive"].map((category) => (
+            {["Basic", "Media", "Interactive", "Layout"].map((category) => (
               <div key={category} className="mb-6">
                 <h3 className="text-sm font-medium text-slate-600 mb-3">
                   {category}

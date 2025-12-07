@@ -12,6 +12,8 @@ import {
   DeleteTestimonialService,
   StatisticListService,
   UpdateStatisticService,
+  SocmedListService,
+  UpdateSocmedService,
 } from "./handler";
 
 export const usePartner = (): UseQueryResult<any> => {
@@ -166,3 +168,36 @@ export const useUpdateStatistic = () => {
     },
   });
 };
+
+export const useSocmed = (): UseQueryResult<any> => {
+  return useQuery({
+    queryKey: ["socmed-list"],
+    queryFn: async () => {
+      try {
+        const { data, status } = await SocmedListService();
+        if (status !== 200) throw new Error();
+        return data;
+      } catch (e) {
+        return null;
+      }
+    },
+    refetchOnWindowFocus: false,
+  });
+};
+
+export const useUpdateSocmed = () => {
+  return useMutation({
+    mutationKey: ["update_socmed"],
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      try {
+        const response: any = await UpdateSocmedService(id, data);
+        if (response.status !== 200) throw new Error(response.message);
+        return { data: response.data };
+      } catch (error: any) {
+        throw new Error(error.message || "Failed to update social media");
+      }
+    },
+  });
+};
+
+

@@ -6,7 +6,6 @@ import {
   Users,
   Layers,
   Image,
-  FileText,
   Megaphone,
   Package,
 } from "lucide-react";
@@ -24,6 +23,7 @@ export const ValidPath = [
 ];
 export const DefaultMenu = [
   { id: 1, text: "Home", icon: Home, href: "/" },
+  { id: 3, text: "Services", icon: Settings, href: "/services" },
   { id: 2, text: "Product", icon: Package, href: "/product" },
   { id: 3, text: "Schedule", icon: BarChart3, href: "/schedule" },
   { id: 4, text: "Promotion", icon: Megaphone, href: "/promotion" },
@@ -33,6 +33,7 @@ export const DefaultMenu = [
 export const SuperMenu = [
   { id: 1, text: "Home", icon: Home, href: "/" },
   { id: 2, text: "Users", icon: Users, href: "/users" },
+  { id: 3, text: "Services", icon: Settings, href: "/services" },
   { id: 3, text: "Product", icon: Package, href: "/product" },
   { id: 4, text: "Schedule", icon: BarChart3, href: "/schedule" },
   { id: 5, text: "Promotion", icon: Megaphone, href: "/promotion" },

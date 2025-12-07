@@ -17,15 +17,10 @@ import { Tooltip } from "antd";
 
 import Notification from "@/components/Notification";
 import { useDebounce } from "@/hooks/useDebounce";
+import { servicesToCategories } from "@/lib/utils";
 
 import { useProducts, useDelete } from "./hook";
-
-const CATEGORIES = [
-  { value: "All", label: "All Categories" },
-  { value: "IT_TRAINING", label: "IT Training" },
-  { value: "IT_CONSULTANT", label: "IT Consultant" },
-  { value: "IT_SUPPORT", label: "IT Support" },
-];
+import { useServices } from "../services/hook";
 
 const SORT_OPTIONS = [
   { value: "desc", label: "Newest First" },
@@ -41,6 +36,15 @@ export default function ProductPage() {
   const [selected, setSelected] = useState(null);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  // Fetch services untuk categories
+  const { data: services = [] } = useServices();
+
+  // Transform services to categories format
+  const CATEGORIES = [
+    { value: "All", label: "All Categories" },
+    ...servicesToCategories(services),
+  ];
 
   const {
     data,

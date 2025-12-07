@@ -101,6 +101,7 @@ export default function PromotionPage() {
       formData.append("promo_description", formAction.promo_description);
       formData.append("end_date", formAction.end_date);
       formData.append("percentage", formAction.percentage);
+      formData.append("link", formAction.link || "");
 
       if (formAction?.banner?.file) {
         formData.append("file", formAction?.banner?.file ?? null);
@@ -134,6 +135,7 @@ export default function PromotionPage() {
       formData.append("promo_description", formAction.promo_description);
       formData.append("end_date", formAction.end_date);
       formData.append("percentage", formAction.percentage);
+      formData.append("link", formAction.link || "");
 
       if (formAction?.banner?.file) {
         formData.append("file", formAction?.banner?.file ?? null);
@@ -555,6 +557,16 @@ export default function PromotionPage() {
                     label="Description"
                     placeholder="Enter promo description"
                     required
+                    form={formAction}
+                    setForm={(e: any) => setFormAction(e)}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <InputForm
+                    type="text"
+                    name="link"
+                    label="Redirect Link (Optional)"
+                    placeholder="https://example.com or leave empty"
                     form={formAction}
                     setForm={(e: any) => setFormAction(e)}
                   />

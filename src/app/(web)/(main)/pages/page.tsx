@@ -22,6 +22,7 @@ export default function PagesPage() {
   const [showModal, setShowModal] = useState<"NONE" | "PUBLISH" | "DELETE">(
     "NONE"
   );
+  const [newPageType, setNewPageType] = useState<string>("Other");
   const router = useRouter();
   const observerTarget = useRef(null);
 
@@ -82,12 +83,13 @@ export default function PagesPage() {
     router.push(
       `/pages/editor?title=${encodeURIComponent(
         newPageTitle
-      )}&slug=${slug}&new=true`
+      )}&slug=${slug}&type=${newPageType}&new=true`
     );
 
     setShowCreateModal(false);
     setNewPageTitle("");
     setNewPageSlug("");
+    setNewPageType("Other");
   };
 
   const handleEditPage = (page: any) => {
@@ -367,6 +369,25 @@ export default function PagesPage() {
                 />
                 <p className="text-xs text-slate-500 mt-1">
                   URL: /{newPageSlug || "page-url-slug"}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Page Type *
+                </label>
+                <select
+                  value={newPageType}
+                  onChange={(e) => setNewPageType(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                >
+                  <option value="Other">Other</option>
+                  <option value="Schedule">Schedule</option>
+                  <option value="Product">Product</option>
+                  <option value="About Us">About Us</option>
+                </select>
+                <p className="text-xs text-slate-500 mt-1">
+                  Select the category for this page. This will affect navbar display.
                 </p>
               </div>
             </div>

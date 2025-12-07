@@ -69,14 +69,22 @@ export default function ScheduleEditorPage() {
   }, [existingSchedule, defaultDate, scheduleId]);
 
   const handleAddBenefit = () => {
-    if (newBenefit?.benefit) {
-      setFormAction((prev: any) => ({
-        ...prev,
-        benefits: [...prev?.benefits, newBenefit.benefit],
-      }));
-      setNewBenefit({ benefit: null });
-      form.setFieldValue("benefit", undefined);
+    if (!newBenefit?.benefit) {
+      return;
     }
+
+    // Check if benefits already has 4 items (maximum limit)
+    if (formAction?.benefits && formAction.benefits.length >= 4) {
+      Notification("error", "Maximum 4 benefits allowed. Please remove one to add new benefit.");
+      return;
+    }
+
+    setFormAction((prev: any) => ({
+      ...prev,
+      benefits: [...prev?.benefits, newBenefit.benefit],
+    }));
+    setNewBenefit({ benefit: null });
+    form.setFieldValue("benefit", undefined);
   };
 
   const handleRemoveBenefit = (index: number) => {
@@ -106,7 +114,8 @@ export default function ScheduleEditorPage() {
       formData.append("status", formAction.status);
       formData.append("language", formAction.language);
       formData.append("quota", formAction.quota);
-      formData.append("lecturer", formAction.lecturer);
+      formData.append("duration", formAction.duration);
+      formData.append("link", formAction.link || "");
       formData.append(
         "is_assestment",
         formAction.is_assestment ? "true" : "false"
@@ -169,7 +178,8 @@ export default function ScheduleEditorPage() {
       formData.append("status", formAction.status);
       formData.append("language", formAction.language);
       formData.append("quota", formAction.quota);
-      formData.append("lecturer", formAction.lecturer);
+      formData.append("duration", formAction.duration);
+      formData.append("link", formAction.link || "");
       formData.append(
         "is_assestment",
         formAction.is_assestment ? "true" : "false"
@@ -321,13 +331,30 @@ export default function ScheduleEditorPage() {
                 form={formAction}
                 setForm={(e: any) => setFormAction(e)}
               />
+              <InputForm
+                type="text"
+                name="link"
+                label="Redirect Link (Optional)"
+                placeholder="https://example.com or leave empty"
+                form={formAction}
+                setForm={(e: any) => setFormAction(e)}
+              />
             </div>
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-6 pt-6 pb-3">
-            <h2 className="text-lg font-semibold text-slate-800 mb-4">
-              Benefits
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-slate-800">
+                Benefits
+              </h2>
+              <span className={`text-sm font-medium px-3 py-1 rounded-full ${
+                formAction?.benefits?.length >= 4 
+                  ? 'bg-red-100 text-red-700' 
+                  : 'bg-slate-100 text-slate-600'
+              }`}>
+                {formAction?.benefits?.length || 0} / 4
+              </span>
+            </div>
             <div className="space-y-3">
               <div className="flex gap-2 items-start">
                 <div className="flex-grow">
@@ -427,9 +454,9 @@ export default function ScheduleEditorPage() {
                 <Col span={12}>
                   <InputForm
                     type="number"
-                    name="lecturer"
-                    label="Lecturers"
-                    placeholder="Enter lecturer"
+                    name="duration"
+                    label="Duration (minutes)"
+                    placeholder="Enter duration in minutes"
                     required
                     form={formAction}
                     setForm={(e: any) => setFormAction(e)}

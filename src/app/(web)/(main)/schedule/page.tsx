@@ -22,6 +22,8 @@ import dayjs from "dayjs";
 import * as XLSX from "xlsx";
 
 import Notification from "@/components/Notification";
+import UploadBannerModal from "./components/UploadBannerModal";
+import { formatDuration } from "@/lib/utils";
 
 import { useSchedules, useDelete, useCreateBulkSchedule } from "./hook";
 
@@ -32,6 +34,8 @@ export default function SchedulePage() {
   const [currentDate, setCurrentDate] = useState(dayjs());
   const [hoveredDate, setHoveredDate] = useState<string | null>(null);
   const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
+  const [uploadedSchedules, setUploadedSchedules] = useState<any[]>([]);
+  const [showBannerModal, setShowBannerModal] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -92,7 +96,8 @@ export default function SchedulePage() {
       "schedule_end",
       "location",
       "quota",
-      "lecturer",
+      "duration",
+      "link",
       "is_assestment",
       "benefits",
       "skill_level",
@@ -109,7 +114,8 @@ export default function SchedulePage() {
       "17:00",
       "Jakarta Convention Center",
       "30",
-      "2",
+      "480",
+      "https://forms.google.com/react-workshop-registration",
       "y/n",
       "Certificate|Lunch|Materials",
       "BEGINNER",
@@ -122,20 +128,21 @@ export default function SchedulePage() {
     const ws = XLSX.utils.aoa_to_sheet(wsData);
 
     const colWidths = [
-      { wch: 35 },
-      { wch: 50 },
-      { wch: 15 },
-      { wch: 15 },
-      { wch: 12 },
-      { wch: 12 },
-      { wch: 30 },
-      { wch: 10 },
-      { wch: 10 },
-      { wch: 15 },
-      { wch: 40 },
-      { wch: 15 },
-      { wch: 15 },
-      { wch: 15 },
+      { wch: 35 },  // schedule_name
+      { wch: 50 },  // schedule_description
+      { wch: 15 },  // schedule_date
+      { wch: 15 },  // schedule_close_registration_date
+      { wch: 12 },  // schedule_start
+      { wch: 12 },  // schedule_end
+      { wch: 30 },  // location
+      { wch: 10 },  // quota
+      { wch: 10 },  // duration
+      { wch: 50 },  // link (new)
+      { wch: 15 },  // is_assestment
+      { wch: 40 },  // benefits
+      { wch: 15 },  // skill_level
+      { wch: 15 },  // language
+      { wch: 15 },  // status
     ];
     ws["!cols"] = colWidths;
 
@@ -171,7 +178,8 @@ export default function SchedulePage() {
               "schedule_end",
               "location",
               "quota",
-              "lecturer",
+              "duration",
+              "link",
               "is_assestment",
               "benefits",
               "skill_level",
@@ -201,7 +209,7 @@ export default function SchedulePage() {
                         .valueOf()
                         .toString();
                       scheduleData[field] = dateTimestamp;
-                    } else if (field === "quota" || field === "lecturer") {
+                    } else if (field === "quota" || field === "duration") {
                       scheduleData[field] = parseInt(value) || 0;
                     } else if (field === "is_assestment") {
                       scheduleData[field] = String(value).toLowerCase() === "y";
@@ -221,11 +229,18 @@ export default function SchedulePage() {
 
             if (newSchedules.length > 0) {
               createSchedule(newSchedules, {
-                onSuccess: () => {
+                onSuccess: (response: any) => {
                   Notification(
                     "success",
                     `Success Import ${newSchedules.length} Data`
                   );
+                  
+                  // Show modal with uploaded schedules
+                  if (response?.data && response.data.length > 0) {
+                    setUploadedSchedules(response.data);
+                    setShowBannerModal(true);
+                  }
+                  
                   refetch();
                 },
                 onError: () => {
@@ -493,7 +508,7 @@ export default function SchedulePage() {
                   <div className="flex items-center gap-2 text-xs text-slate-600">
                     <Users className="w-3.5 h-3.5" />
                     <span>
-                      {schedule.quota} seats | {schedule.lecturer} lecturer(s)
+                      {schedule.quota} seats | {formatDuration(schedule.duration, { short: true })}
                     </span>
                   </div>
                 </div>
@@ -564,6 +579,22 @@ export default function SchedulePage() {
           </div>
         </div>
       ) : null}
+
+      {/* Upload Banner Modal */}
+      {showBannerModal && uploadedSchedules.length > 0 && (
+        <UploadBannerModal
+          schedules={uploadedSchedules}
+          onClose={() => {
+            setShowBannerModal(false);
+            setUploadedSchedules([]);
+          }}
+          onComplete={() => {
+            setShowBannerModal(false);
+            setUploadedSchedules([]);
+            refetch();
+          }}
+        />
+      )}
     </div>
   );
 }
