@@ -718,12 +718,12 @@ export default function PageEditor() {
                   {isSaving ? "Saving..." : "Save"}
                 </span>
               </button>
-              <button
+              {/* <button
                 onClick={() => setShowMetadataPanel(true)}
                 className="flex items-center gap-2 px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors"
               >
                 <span className="hidden sm:inline">SEO</span>
-              </button>
+              </button> */}
             </div>
           </div>
         </div>

@@ -40,7 +40,7 @@ export default function PagesPage() {
     refetch,
   } = usePages({
     search: debouncedSearch,
-    status: statusFilter === "All" ? undefined : statusFilter,
+    status: statusFilter === "All" ? undefined : statusFilter.toUpperCase(),
   });
 
   // Delete mutation
@@ -257,7 +257,7 @@ export default function PagesPage() {
                     </button>
                     <span
                       className={`top-3 right-3 absolute inline-flex px-2 py-1 rounded-full text-xs font-medium capitalize ${
-                        page.status === "Published"
+                        page.status.toUpperCase() === "PUBLISHED"
                           ? "bg-green-100 text-green-700"
                           : "bg-yellow-100 text-yellow-700"
                       }`}
@@ -387,7 +387,8 @@ export default function PagesPage() {
                   <option value="About Us">About Us</option>
                 </select>
                 <p className="text-xs text-slate-500 mt-1">
-                  Select the category for this page. This will affect navbar display.
+                  Select the category for this page. This will affect navbar
+                  display.
                 </p>
               </div>
             </div>
