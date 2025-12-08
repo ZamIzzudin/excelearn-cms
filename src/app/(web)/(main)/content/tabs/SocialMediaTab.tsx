@@ -76,7 +76,8 @@ export default function SocialMediaTab() {
             Social Media Management
           </h3>
           <p className="text-sm text-blue-700">
-            Update your social media links. Leave link empty to hide from website.
+            Update your social media links. Leave link empty to hide from
+            website.
           </p>
         </div>
       </div>
@@ -88,19 +89,6 @@ export default function SocialMediaTab() {
             className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-lg transition-all"
           >
             <div className="flex items-start gap-4">
-              <div className="relative w-16 h-16 bg-slate-50 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
-                {socmed?.logo?.url ? (
-                  <Image
-                    src={socmed?.logo?.url}
-                    alt={socmed.socmed_name}
-                    width={48}
-                    height={48}
-                    className="object-contain max-h-full"
-                  />
-                ) : (
-                  <Share2 className="w-8 h-8 text-slate-300" />
-                )}
-              </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-slate-800 mb-1 truncate">
                   {socmed?.socmed_name}
@@ -164,49 +152,6 @@ export default function SocialMediaTab() {
                 form={formAction}
                 setForm={setFormAction}
               />
-
-              {formAction?.logo ? (
-                <div className="mb-4">
-                  <span className="block text-sm font-medium text-slate-700 mb-2">
-                    Current Logo
-                  </span>
-                  <div className="relative mb-5 flex items-center justify-center">
-                    <Image
-                      src={formAction?.logo?.data || formAction?.logo?.url}
-                      alt={formAction.socmed_name || "Logo"}
-                      width={0}
-                      height={0}
-                      sizes="100vw"
-                      style={{
-                        width: "50%",
-                        height: "auto",
-                        borderRadius: "10px",
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setFormAction((prev: any) => ({
-                          ...prev,
-                          logo: undefined,
-                        }))
-                      }
-                      className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-md hover:bg-red-50 text-red-600 transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <InputForm
-                  type="file"
-                  name="logo"
-                  label="Social Media Logo/Icon"
-                  accept="image/*"
-                  form={formAction}
-                  setForm={setFormAction}
-                />
-              )}
 
               <div className="flex gap-3 mt-6">
                 <button
