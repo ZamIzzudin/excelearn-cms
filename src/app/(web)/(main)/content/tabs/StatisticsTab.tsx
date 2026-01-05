@@ -161,8 +161,8 @@ export default function StatisticsTab() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3 p-4 bg-indigo-50 rounded-xl border border-indigo-200">
-          <TrendingUp className="w-5 h-5 text-indigo-600" />
+        <div className="flex items-center gap-3 p-4 bg-primary-50 rounded-xl border border-primary-200">
+          <TrendingUp className="w-5 h-5 text-primary-600" />
           <h3 className="font-semibold text-indigo-900">Website Statistics</h3>
         </div>
 

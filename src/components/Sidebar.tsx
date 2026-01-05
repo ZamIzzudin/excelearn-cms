@@ -53,7 +53,7 @@ export default function Sidebar() {
             <div className="flex gap-3 items-center">
               <div
                 onClick={() => setIsCollapsed(false)}
-                className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center cursor-pointer"
+                className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center cursor-pointer"
               >
                 <span className="text-white font-bold text-sm">E</span>
               </div>
@@ -93,14 +93,14 @@ export default function Sidebar() {
                 href={item.href}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group ${
                   isActive
-                    ? "bg-indigo-50 text-indigo-600 border border-indigo-100"
+                    ? "bg-primary-50 text-primary-600 border border-primary-100"
                     : "text-slate-600 hover:bg-slate-50 hover:text-slate-800"
                 } ${isCollapsed ? "lg:justify-center lg:px-2" : ""}`}
               >
                 <Icon
                   className={`w-5 h-5 ${
                     isActive
-                      ? "text-indigo-600"
+                      ? "text-primary-600"
                       : "text-slate-500 group-hover:text-slate-700"
                   }`}
                 />
@@ -116,7 +116,7 @@ export default function Sidebar() {
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-200">
           {!isCollapsed && (
             <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 mb-3">
-              <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
                 <span className="text-white font-medium text-sm">
                   {state?.user?.display_name
                     ? state?.user?.display_name[0]

@@ -77,7 +77,7 @@ const InputForm: React.FC<InputFormProps> = ({
 
   const baseInputClass = cn(
     "transition-all duration-200",
-    "border-slate-200 hover:border-slate-300 focus:border-indigo-500",
+    "border-slate-200 hover:border-slate-300 focus:border-primary-500",
     "rounded-xl",
     className
   );
@@ -240,7 +240,7 @@ const InputForm: React.FC<InputFormProps> = ({
         >
           <div
             className={cn(
-              "border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-indigo-300 transition-colors cursor-pointer",
+              "border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-primary-300 transition-colors cursor-pointer",
               disabled && "opacity-50 cursor-not-allowed"
             )}
           >
