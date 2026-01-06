@@ -82,7 +82,7 @@ export default function Sidebar() {
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 space-y-2">
+        <nav className="p-4 space-y-2 overflow-auto">
           {menuList.map((item: MenuItem) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
