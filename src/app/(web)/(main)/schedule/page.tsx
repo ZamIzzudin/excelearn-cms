@@ -128,21 +128,21 @@ export default function SchedulePage() {
     const ws = XLSX.utils.aoa_to_sheet(wsData);
 
     const colWidths = [
-      { wch: 35 },  // schedule_name
-      { wch: 50 },  // schedule_description
-      { wch: 15 },  // schedule_date
-      { wch: 15 },  // schedule_close_registration_date
-      { wch: 12 },  // schedule_start
-      { wch: 12 },  // schedule_end
-      { wch: 30 },  // location
-      { wch: 10 },  // quota
-      { wch: 10 },  // duration
-      { wch: 50 },  // link (new)
-      { wch: 15 },  // is_assestment
-      { wch: 40 },  // benefits
-      { wch: 15 },  // skill_level
-      { wch: 15 },  // language
-      { wch: 15 },  // status
+      { wch: 35 }, // schedule_name
+      { wch: 50 }, // schedule_description
+      { wch: 15 }, // schedule_date
+      { wch: 15 }, // schedule_close_registration_date
+      { wch: 12 }, // schedule_start
+      { wch: 12 }, // schedule_end
+      { wch: 30 }, // location
+      { wch: 10 }, // quota
+      { wch: 10 }, // duration
+      { wch: 50 }, // link (new)
+      { wch: 15 }, // is_assestment
+      { wch: 40 }, // benefits
+      { wch: 15 }, // skill_level
+      { wch: 15 }, // language
+      { wch: 15 }, // status
     ];
     ws["!cols"] = colWidths;
 
@@ -234,13 +234,13 @@ export default function SchedulePage() {
                     "success",
                     `Success Import ${newSchedules.length} Data`
                   );
-                  
+
                   // Show modal with uploaded schedules
                   if (response?.data && response.data.length > 0) {
                     setUploadedSchedules(response.data);
                     setShowBannerModal(true);
                   }
-                  
+
                   refetch();
                 },
                 onError: () => {
@@ -326,7 +326,7 @@ export default function SchedulePage() {
           />
           <button
             onClick={() => router.push("/schedule/editor")}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
           >
             <Plus className="w-5 h-5" />
             <span className="hidden sm:inline">Add Schedule</span>
@@ -394,9 +394,9 @@ export default function SchedulePage() {
                     isCurrentMonth
                       ? "border-slate-200"
                       : "border-slate-100 opacity-50"
-                  } ${isToday ? "bg-indigo-50 border-indigo-200" : ""} ${
+                  } ${isToday ? "bg-blue-50 border-blue-200" : ""} ${
                     hasEvents
-                      ? "hover:shadow-md hover:border-indigo-300"
+                      ? "hover:shadow-md hover:border-blue-300"
                       : "hover:bg-slate-50"
                   }`}
                   onMouseEnter={(e) => handleMouseEnter(day, e)}
@@ -412,7 +412,7 @@ export default function SchedulePage() {
                   <div
                     className={`text-sm font-medium mb-2 ${
                       isToday
-                        ? "text-indigo-600"
+                        ? "text-blue-600"
                         : isCurrentMonth
                         ? "text-slate-800"
                         : "text-slate-400"
@@ -425,11 +425,11 @@ export default function SchedulePage() {
                     {events.slice(0, 3).map((event: any) => (
                       <div
                         key={event._id}
-                        className="text-xs p-1.5 rounded bg-indigo-100 text-indigo-700 truncate cursor-pointer hover:bg-indigo-200 transition-colors"
+                        className="text-xs p-1.5 rounded bg-blue-100 text-blue-700 truncate cursor-pointer hover:bg-blue-200 transition-colors"
                         title={event.schedule_name}
                       >
                         <div className="flex items-center gap-1">
-                          <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                          <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                           <span className="truncate font-medium">
                             {event.schedule_name}
                           </span>
@@ -475,7 +475,7 @@ export default function SchedulePage() {
             {getEventsForDate(dayjs(hoveredDate)).map((schedule: any) => (
               <div
                 key={schedule.id}
-                className="p-3 border border-slate-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 transition-all"
+                className="p-3 border border-slate-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all"
               >
                 <div className="flex items-start justify-between mb-2">
                   <h4 className="font-semibold text-slate-800 flex-1">
@@ -508,7 +508,8 @@ export default function SchedulePage() {
                   <div className="flex items-center gap-2 text-xs text-slate-600">
                     <Users className="w-3.5 h-3.5" />
                     <span>
-                      {schedule.quota} seats | {formatDuration(schedule.duration, { short: true })}
+                      {schedule.quota} seats |{" "}
+                      {formatDuration(schedule.duration, { short: true })}
                     </span>
                   </div>
                 </div>
@@ -516,7 +517,7 @@ export default function SchedulePage() {
                 <div className="flex gap-3 mt-5">
                   <button
                     onClick={() => setSelected(schedule._id)}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2 border text-indigo-600 border-indigo-600 rounded-lg hover:bg-indigo-200 transition-colors text-sm font-medium"
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 border text-blue-600 border-blue-600 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium"
                   >
                     <Trash2 className="w-4 h-4" />
                     Delete
@@ -525,7 +526,7 @@ export default function SchedulePage() {
                     onClick={() =>
                       router.push(`/schedule/editor?id=${schedule._id}`)
                     }
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                   >
                     <Edit className="w-4 h-4" />
                     Edit
@@ -550,7 +551,7 @@ export default function SchedulePage() {
                 onClick={() => {
                   setSelected(null);
                 }}
-                className="flex items-center justify-center gap-2 px-10 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                className="flex items-center justify-center gap-2 px-10 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                 disabled={isPending}
               >
                 No

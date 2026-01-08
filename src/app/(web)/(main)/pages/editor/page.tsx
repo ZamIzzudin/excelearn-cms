@@ -589,7 +589,7 @@ export default function PageEditor() {
   if (isLoadingDetail && pageId) {
     return (
       <div className="h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
       </div>
     );
   }
@@ -626,7 +626,7 @@ export default function PageEditor() {
                           draggable
                           onDragStart={() => handleDragStart(component)}
                           onDragEnd={handleDragEnd}
-                          className="p-3 border border-slate-200 rounded-lg cursor-grab hover:bg-slate-50 transition-colors active:cursor-grabbing hover:border-indigo-300"
+                          className="p-3 border border-slate-200 rounded-lg cursor-grab hover:bg-slate-50 transition-colors active:cursor-grabbing hover:border-blue-300"
                         >
                           <Icon className="w-5 h-5 text-slate-600 mb-2" />
                           <p className="text-xs font-medium text-slate-700">
@@ -707,7 +707,7 @@ export default function PageEditor() {
               <button
                 onClick={savePageData}
                 disabled={isSaving}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
                 {isSaving ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -771,7 +771,7 @@ export default function PageEditor() {
                           onDragEnd={handleDragEnd}
                           className={`relative group transition-all duration-200 ${
                             dragOverComponent === component.id
-                              ? "border-t-4 border-indigo-500 pt-4"
+                              ? "border-t-4 border-blue-500 pt-4"
                               : ""
                           }`}
                           onClick={(e) => {
@@ -783,7 +783,7 @@ export default function PageEditor() {
                           <div
                             className={`relative ${
                               selectedComponent === component.id
-                                ? "ring-2 ring-indigo-500 ring-offset-2"
+                                ? "ring-2 ring-blue-500 ring-offset-2"
                                 : "hover:ring-2 hover:ring-slate-300"
                             } rounded-lg transition-all cursor-pointer`}
                             style={{
@@ -809,12 +809,12 @@ export default function PageEditor() {
 
                             {/* Component Label */}
                             {selectedComponent === component.id && (
-                              <div className="absolute -top-9 left-0 flex items-center gap-2 bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs z-10 shadow-lg">
+                              <div className="absolute -top-9 left-0 flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs z-10 shadow-lg">
                                 <span className="capitalize font-medium">
                                   {component.type}
                                 </span>
-                                <span className="text-indigo-200">•</span>
-                                <span className="text-indigo-200">
+                                <span className="text-blue-200">•</span>
+                                <span className="text-blue-200">
                                   {component.gridColumn}/12
                                 </span>
                                 <button
@@ -822,7 +822,7 @@ export default function PageEditor() {
                                     e.stopPropagation();
                                     deleteComponent(component.id);
                                   }}
-                                  className="ml-1 hover:bg-indigo-700 rounded px-1.5 py-0.5 transition-colors"
+                                  className="ml-1 hover:bg-blue-700 rounded px-1.5 py-0.5 transition-colors"
                                 >
                                   <X className="w-3 h-3" />
                                 </button>
@@ -873,11 +873,11 @@ export default function PageEditor() {
                       parseInt(e.target.value)
                     )
                   }
-                  className="w-full accent-indigo-600 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                  className="w-full accent-blue-600 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
                 />
                 <div className="flex justify-between text-xs text-slate-500 mt-2">
                   <span>1 col</span>
-                  <span className="font-semibold text-indigo-600 text-sm">
+                  <span className="font-semibold text-blue-600 text-sm">
                     {selectedComponentData.gridColumn} / 12 (
                     {Math.round((selectedComponentData.gridColumn / 12) * 100)}
                     %)
@@ -909,7 +909,7 @@ export default function PageEditor() {
                         }
                         className={`flex-1 p-2 border rounded-lg transition-colors ${
                           selectedComponentData.props.textAlign === value
-                            ? "bg-indigo-50 border-indigo-200 text-indigo-600"
+                            ? "bg-blue-50 border-blue-200 text-blue-600"
                             : "border-slate-200 hover:bg-slate-50"
                         }`}
                       >
@@ -928,7 +928,7 @@ export default function PageEditor() {
                 <div className="space-y-2">
                   <button
                     onClick={() => bgImageInputRef.current?.click()}
-                    className="w-full p-3 border-2 border-dashed border-slate-200 rounded-lg hover:border-indigo-300 transition-colors flex items-center justify-center gap-2 text-slate-600 hover:text-indigo-600"
+                    className="w-full p-3 border-2 border-dashed border-slate-200 rounded-lg hover:border-blue-300 transition-colors flex items-center justify-center gap-2 text-slate-600 hover:text-blue-600"
                   >
                     <Upload className="w-4 h-4" />
                     Upload Background
@@ -970,7 +970,7 @@ export default function PageEditor() {
                           content: e.target.value,
                         })
                       }
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       rows={3}
                     />
                   </div>
@@ -989,7 +989,7 @@ export default function PageEditor() {
                           fontSize: parseInt(e.target.value),
                         })
                       }
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
@@ -1033,7 +1033,7 @@ export default function PageEditor() {
                                   className={`w-full h-16 object-cover rounded-lg cursor-pointer transition-all ${
                                     selectedComponentData.props.src ===
                                     image.data
-                                      ? "ring-2 ring-indigo-500"
+                                      ? "ring-2 ring-blue-500"
                                       : "hover:opacity-75"
                                   }`}
                                   onClick={() =>
@@ -1053,7 +1053,7 @@ export default function PageEditor() {
 
                       <button
                         onClick={() => fileInputRef.current?.click()}
-                        className="w-full p-3 border-2 border-dashed border-slate-200 rounded-lg hover:border-indigo-300 transition-colors flex items-center justify-center gap-2 text-slate-600 hover:text-indigo-600"
+                        className="w-full p-3 border-2 border-dashed border-slate-200 rounded-lg hover:border-blue-300 transition-colors flex items-center justify-center gap-2 text-slate-600 hover:text-blue-600"
                       >
                         <Upload className="w-4 h-4" />
                         Upload New Image
@@ -1072,7 +1072,7 @@ export default function PageEditor() {
                             })
                           }
                           placeholder="https://example.com/image.jpg"
-                          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                     </div>
@@ -1090,7 +1090,7 @@ export default function PageEditor() {
                           alt: e.target.value,
                         })
                       }
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
@@ -1108,7 +1108,7 @@ export default function PageEditor() {
                           borderRadius: parseInt(e.target.value),
                         })
                       }
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                 </>
@@ -1129,7 +1129,7 @@ export default function PageEditor() {
                           text: e.target.value,
                         })
                       }
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
@@ -1147,7 +1147,7 @@ export default function PageEditor() {
                           fontSize: parseInt(e.target.value),
                         })
                       }
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
@@ -1165,7 +1165,7 @@ export default function PageEditor() {
                           borderRadius: parseInt(e.target.value),
                         })
                       }
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
@@ -1226,7 +1226,7 @@ export default function PageEditor() {
                                   items: newItems,
                                 });
                               }}
-                              className="flex-1 px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              className="flex-1 px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                             <button
                               onClick={() => {
@@ -1257,7 +1257,7 @@ export default function PageEditor() {
                             items: newItems,
                           });
                         }}
-                        className="w-full p-2 border-2 border-dashed border-slate-200 rounded-lg hover:border-indigo-300 text-slate-600 hover:text-indigo-600 transition-colors"
+                        className="w-full p-2 border-2 border-dashed border-slate-200 rounded-lg hover:border-blue-300 text-slate-600 hover:text-blue-600 transition-colors"
                       >
                         + Add Item
                       </button>
@@ -1275,7 +1275,7 @@ export default function PageEditor() {
                           listStyle: e.target.value,
                         })
                       }
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="disc">Disc</option>
                       <option value="circle">Circle</option>
@@ -1299,7 +1299,7 @@ export default function PageEditor() {
                           fontSize: parseInt(e.target.value),
                         })
                       }
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
@@ -1356,7 +1356,7 @@ export default function PageEditor() {
                       padding: parseInt(e.target.value),
                     })
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <div className="text-xs text-slate-500 mt-1">
                   Spacing around content (px)
@@ -1400,7 +1400,7 @@ export default function PageEditor() {
                         }))
                       }
                       placeholder="Enter page title for SEO (50-60 characters)"
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <p className="text-xs text-slate-500 mt-1">
                       {metadata.metaTitle.length}/60 characters
@@ -1421,7 +1421,7 @@ export default function PageEditor() {
                       }
                       placeholder="Enter page description for search engines (150-160 characters)"
                       rows={3}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <p className="text-xs text-slate-500 mt-1">
                       {metadata.metaDescription.length}/160 characters
@@ -1442,7 +1442,7 @@ export default function PageEditor() {
                         }))
                       }
                       placeholder="Enter keywords separated by commas"
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                 </div>
@@ -1467,7 +1467,7 @@ export default function PageEditor() {
                         }))
                       }
                       placeholder="Title for social media sharing"
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
@@ -1485,7 +1485,7 @@ export default function PageEditor() {
                       }
                       placeholder="Description for social media sharing"
                       rows={2}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
@@ -1503,7 +1503,7 @@ export default function PageEditor() {
                         }))
                       }
                       placeholder="Image URL for social media sharing"
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                 </div>
@@ -1528,7 +1528,7 @@ export default function PageEditor() {
                         }))
                       }
                       placeholder="Canonical URL for this page"
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
@@ -1544,7 +1544,7 @@ export default function PageEditor() {
                           robotsIndex: e.target.value,
                         }))
                       }
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="index,follow">Index, Follow</option>
                       <option value="noindex,nofollow">
@@ -1567,7 +1567,7 @@ export default function PageEditor() {
               </button>
               <button
                 onClick={() => setShowMetadataPanel(false)}
-                className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
               >
                 Save Metadata
               </button>

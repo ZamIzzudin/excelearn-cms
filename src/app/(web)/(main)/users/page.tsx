@@ -116,7 +116,7 @@ export default function UsersPage() {
         </div>
         <button
           onClick={() => setShow("ADD")}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
         >
           <Plus className="w-5 h-5" />
           Add User
@@ -133,7 +133,7 @@ export default function UsersPage() {
               placeholder="Search by username or name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             {searchTerm && (
               <button
@@ -193,8 +193,8 @@ export default function UsersPage() {
                     >
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                            <span className="text-indigo-600 font-medium text-sm">
+                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span className="text-blue-600 font-medium text-sm">
                               {user?.display_name
                                 ? user?.display_name[0]?.toUpperCase()
                                 : "U"}
@@ -317,7 +317,7 @@ export default function UsersPage() {
                   type="button"
                   onClick={() => handleAddUser()}
                   disabled={registerPending}
-                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
                 >
                   {registerPending ? "Loading..." : "Add User"}
                 </button>
@@ -384,7 +384,7 @@ export default function UsersPage() {
                   type="button"
                   onClick={() => handleUpdateUser()}
                   disabled={updatePending}
-                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
                 >
                   {updatePending ? "Loading..." : "Update User"}
                 </button>

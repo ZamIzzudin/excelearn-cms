@@ -3,19 +3,25 @@
 "use client";
 
 import { useState } from "react";
-import { Table, Button, Space, Tag, Popconfirm, Modal } from "antd";
-import { Edit, Trash2, Plus, Eye } from "lucide-react";
+import { Tag, Modal } from "antd";
+import { Edit, Trash2, Plus, Eye, Search } from "lucide-react";
+
 import { useMetadataList, useDeleteMetadata } from "./hook";
+import { useDebounce } from "@/hooks/useDebounce";
+
 import MetadataForm from "./components/MetadataForm";
 import Notification from "@/components/Notification";
 
 export default function MetadataPage() {
+  const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMetadata, setSelectedMetadata] = useState<any>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState<any>(null);
 
-  const { data: metadataList = [], isLoading, refetch } = useMetadataList();
+  const debouncedSearchName = useDebounce(searchTerm, 500);
+
+  const { data, isLoading, refetch } = useMetadataList();
   const { mutate: deleteMetadata, isPending: isDeleting } = useDeleteMetadata();
 
   const handleEdit = (record: any) => {
@@ -50,115 +56,6 @@ export default function MetadataPage() {
     setSelectedMetadata(null);
   };
 
-  const columns = [
-    {
-      title: "Page",
-      dataIndex: "page",
-      key: "page",
-      width: 120,
-      render: (text: string) => <span className="font-semibold">{text}</span>,
-    },
-    {
-      title: "Title",
-      dataIndex: "title",
-      key: "title",
-      ellipsis: true,
-      render: (text: string) => (
-        <span className="text-slate-700 max-w-xs">{text}</span>
-      ),
-    },
-    {
-      title: "Description",
-      dataIndex: "description",
-      key: "description",
-      ellipsis: true,
-      width: 250,
-      render: (text: string) => (
-        <span className="text-slate-600 text-sm line-clamp-2">{text}</span>
-      ),
-    },
-    {
-      title: "Keywords",
-      dataIndex: "keywords",
-      key: "keywords",
-      width: 150,
-      render: (keywords: string[]) =>
-        keywords && keywords.length > 0 ? (
-          <div className="flex flex-wrap gap-1">
-            {keywords.slice(0, 2).map((k, i) => (
-              <Tag key={i} color="blue" className="text-xs">
-                {k}
-              </Tag>
-            ))}
-            {keywords.length > 2 && (
-              <Tag className="text-xs">+{keywords.length - 2}</Tag>
-            )}
-          </div>
-        ) : (
-          <span className="text-slate-400">-</span>
-        ),
-    },
-    {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      width: 120,
-      render: (status: string) => (
-        <Tag
-          color={status === "PUBLISHED" ? "green" : "orange"}
-          className="text-xs font-semibold"
-        >
-          {status}
-        </Tag>
-      ),
-    },
-    {
-      title: "Language",
-      dataIndex: "language",
-      key: "language",
-      width: 100,
-      render: (lang: string) => <span className="text-slate-600">{lang}</span>,
-    },
-    {
-      title: "Actions",
-      key: "actions",
-      width: 150,
-      fixed: "right" as const,
-      render: (_: any, record: any) => (
-        <Space size="small">
-          <Button
-            type="text"
-            size="small"
-            onClick={() => handlePreview(record)}
-            icon={<Eye className="w-4 h-4" />}
-          />
-          <Button
-            type="text"
-            size="small"
-            onClick={() => handleEdit(record)}
-            icon={<Edit className="w-4 h-4" />}
-          />
-          <Popconfirm
-            title="Delete Metadata"
-            description="Are you sure you want to delete this metadata?"
-            onConfirm={() => handleDelete(record._id)}
-            okText="Yes"
-            cancelText="No"
-            okButtonProps={{ danger: true }}
-          >
-            <Button
-              type="text"
-              danger
-              size="small"
-              disabled={isDeleting}
-              icon={<Trash2 className="w-4 h-4" />}
-            />
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -171,15 +68,13 @@ export default function MetadataPage() {
             Manage SEO metadata for all static pages
           </p>
         </div>
-        <Button
-          type="primary"
-          size="large"
+        <button
           onClick={handleAddNew}
-          icon={<Plus className="w-5 h-5" />}
-          className="h-12 px-6"
+          className="flex items-center gap-2 px-4 py-2 bg-blue-400 text-white rounded-xl hover:bg-blue-600 transition-colors"
         >
+          <Plus className="w-5 h-5" />
           Add Metadata
-        </Button>
+        </button>
       </div>
 
       {/* Info Box */}
@@ -189,22 +84,169 @@ export default function MetadataPage() {
           SEO performance. Published metadata will be visible on the website.
         </p>
       </div>
+      {/* 
+      <div className="bg-white rounded-2xl p-6 border border-slate-200">
+        <div className="flex items-center gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search by page name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+        {debouncedSearchName && (
+          <p className="text-sm text-slate-500 mt-2">
+            Searching for:{" "}
+            <span className="font-medium">{debouncedSearchName}</span>
+          </p>
+        )}
+      </div> */}
 
-      {/* Table */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <Table
-          columns={columns}
-          dataSource={metadataList}
-          loading={isLoading}
-          rowKey="_id"
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showTotal: (total) => `Total ${total} metadata`,
-          }}
-          scroll={{ x: 1200 }}
-        />
-      </div>
+      {isLoading ? (
+        <div className="animate-pulse bg-gray-100 w-full min-h-[30dvh] rounded-xl"></div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="text-left py-4 px-6 font-medium text-slate-700">
+                    Page
+                  </th>
+                  <th className="text-left py-4 px-6 font-medium text-slate-700">
+                    Title
+                  </th>
+                  <th className="text-left py-4 px-6 font-medium text-slate-700">
+                    Description
+                  </th>
+                  <th className="text-left py-4 px-6 font-medium text-slate-700">
+                    Keywords
+                  </th>
+                  <th className="text-left py-4 px-6 font-medium text-slate-700">
+                    Status
+                  </th>
+                  <th className="text-left py-4 px-6 font-medium text-slate-700">
+                    Language
+                  </th>
+                  <th className="text-right py-4 px-6 font-medium text-slate-700">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {data.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="py-8 text-center text-slate-500">
+                      {debouncedSearchName
+                        ? "No users found matching your search"
+                        : "No users found"}
+                    </td>
+                  </tr>
+                ) : (
+                  data.map((metadata: any) => (
+                    <tr
+                      key={metadata._id}
+                      className="hover:bg-slate-50 transition-colors"
+                    >
+                      <td className="py-4 px-6">
+                        <p className="font-medium text-slate-800 text-[14px]">
+                          /{metadata?.page || "-"}
+                        </p>
+                      </td>
+                      <td className="py-4 px-6">
+                        <p className="font-medium text-slate-800 text-[12px]">
+                          {metadata?.title || "-"}
+                        </p>
+                      </td>
+                      <td className="py-4 px-6">
+                        <p className="font-medium text-slate-800 text-[12px]">
+                          {metadata?.description || "-"}
+                        </p>
+                      </td>
+                      <td className="py-4 px-6">
+                        {metadata?.keywords && metadata?.keywords.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {metadata?.keywords
+                              .slice(0, 2)
+                              .map((k: string, i: number) => (
+                                <Tag
+                                  key={i + 1}
+                                  color="blue"
+                                  className="text-xs"
+                                >
+                                  {k}
+                                </Tag>
+                              ))}
+                            {metadata?.keywords.length > 2 && (
+                              <Tag className="text-xs">
+                                +{metadata?.keywords.length - 2}
+                              </Tag>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-slate-400">-</span>
+                        )}
+                      </td>
+                      <td className="py-4 px-6">
+                        <Tag
+                          color={
+                            metadata?.status === "PUBLISHED"
+                              ? "green"
+                              : "orange"
+                          }
+                          className="text-xs"
+                        >
+                          {metadata?.status}
+                        </Tag>
+                      </td>
+                      <td className="py-4 px-6">
+                        <p className="font-medium text-slate-800">
+                          {metadata?.language || "-"}
+                        </p>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handlePreview(metadata)}
+                            className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                          >
+                            <Eye className="w-4 h-4 text-blue-400" />
+                          </button>
+                          <button
+                            onClick={() => handleEdit(metadata)}
+                            className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                          >
+                            <Edit className="w-4 h-4 text-slate-500" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(metadata?._id)}
+                            type="button"
+                            className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4 text-blue-400" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Modal for Form */}
       <Modal
@@ -304,11 +346,15 @@ export default function MetadataPage() {
             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-200">
               <div>
                 <label className="text-sm text-slate-600">OG Title</label>
-                <p className="text-slate-700 text-sm mt-1">{previewData.og_title || "-"}</p>
+                <p className="text-slate-700 text-sm mt-1">
+                  {previewData.og_title || "-"}
+                </p>
               </div>
               <div>
                 <label className="text-sm text-slate-600">Language</label>
-                <p className="text-slate-700 text-sm mt-1">{previewData.language || "-"}</p>
+                <p className="text-slate-700 text-sm mt-1">
+                  {previewData.language || "-"}
+                </p>
               </div>
             </div>
           </div>

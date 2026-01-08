@@ -80,7 +80,7 @@ export default function UploadBannerModal({
     }
 
     const formData = new FormData();
-    
+
     // Add all required fields from schedule
     formData.append("schedule_name", schedule.schedule_name);
     formData.append("schedule_description", schedule.schedule_description);
@@ -105,7 +105,7 @@ export default function UploadBannerModal({
         formData.append("benefits", benefit);
       });
     }
-    
+
     // Add banner file
     formData.append("file", bannerData.file);
 
@@ -113,7 +113,10 @@ export default function UploadBannerModal({
       { id: schedule._id, data: formData },
       {
         onSuccess: () => {
-          Notification("success", `Banner uploaded for ${schedule.schedule_name}`);
+          Notification(
+            "success",
+            `Banner uploaded for ${schedule.schedule_name}`
+          );
           setSavedBanners((prev) => new Set(prev).add(schedule._id));
         },
         onError: () => {
@@ -163,7 +166,7 @@ export default function UploadBannerModal({
               return (
                 <div
                   key={schedule._id}
-                  className="border border-slate-200 rounded-xl p-4 hover:border-indigo-300 transition-colors"
+                  className="border border-slate-200 rounded-xl p-4 hover:border-blue-300 transition-colors"
                 >
                   <div className="flex items-start gap-4">
                     {/* Schedule Info */}
@@ -204,7 +207,7 @@ export default function UploadBannerModal({
                             </button>
                           </div>
                         ) : (
-                          <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-indigo-500 transition-colors">
+                          <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
                             <Upload className="w-6 h-6 text-slate-400 mb-2" />
                             <span className="text-sm text-slate-600">
                               Click to upload banner
@@ -232,7 +235,7 @@ export default function UploadBannerModal({
                         <button
                           onClick={() => handleSaveBanner(schedule)}
                           disabled={isPending}
-                          className="mt-3 w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="mt-3 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {isPending ? "Saving..." : "Save Banner"}
                         </button>
@@ -253,7 +256,7 @@ export default function UploadBannerModal({
             </p>
             <button
               onClick={handleComplete}
-              className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
               Done
             </button>

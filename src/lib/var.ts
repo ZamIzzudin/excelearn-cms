@@ -8,6 +8,7 @@ import {
   Image,
   Megaphone,
   Package,
+  SearchCheck,
 } from "lucide-react";
 
 export const ValidPath = [
@@ -39,10 +40,11 @@ export const SuperMenu = [
   { id: 6, text: "Promotion", icon: Megaphone, href: "/promotion" },
   { id: 7, text: "Content", icon: Image, href: "/content" },
   { id: 8, text: "Pages", icon: Layers, href: "/pages" },
+  { id: 9, text: "Metadata", icon: SearchCheck, href: "/metadata" },
 ];
 
-export const LocalToken = "exc_auth_token";
-export const LocalRefreshToken = "exc_refresh_token";
+export const LocalToken = "excutrain_auth_token";
+export const LocalRefreshToken = "excutrain_refresh_token";
 
 export const colors = [
   "#00AEEF", // Cyan

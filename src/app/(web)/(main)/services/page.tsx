@@ -224,7 +224,7 @@ export default function ServicePage() {
           <div className="flex gap-2 pt-4 border-t border-slate-200">
             <button
               onClick={() => handleOpenEditModal(service)}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
             >
               <Edit className="w-4 h-4" />
               Edit
@@ -254,7 +254,7 @@ export default function ServicePage() {
         </div>
         <button
           onClick={handleOpenAddModal}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
         >
           <Plus className="w-5 h-5" />
           Add Service
@@ -270,7 +270,7 @@ export default function ServicePage() {
             placeholder="Search service..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
       </div>
@@ -278,7 +278,7 @@ export default function ServicePage() {
       {/* Loading State */}
       {isLoading ? (
         <div className="text-center py-12">
-          <div className="inline-block w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
           <p className="mt-4 text-slate-600">Loading services...</p>
         </div>
       ) : filteredServices && filteredServices.length > 0 ? (
@@ -310,7 +310,7 @@ export default function ServicePage() {
           </p>
           <button
             onClick={handleOpenAddModal}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
           >
             <Plus className="w-5 h-5" />
             Add Service
@@ -347,7 +347,7 @@ export default function ServicePage() {
                     setFormData({ ...formData, service_name: e.target.value })
                   }
                   placeholder="e.g., Web Development"
-                  className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
@@ -367,7 +367,7 @@ export default function ServicePage() {
                   }
                   placeholder="Describe your service..."
                   rows={4}
-                  className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                  className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                   required
                 />
               </div>
@@ -396,7 +396,7 @@ export default function ServicePage() {
                     </button>
                   </div>
                 ) : (
-                  <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-indigo-500 transition-colors">
+                  <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
                     <Upload className="w-8 h-8 text-slate-400 mb-2" />
                     <span className="text-sm text-slate-600">
                       Click to upload logo
@@ -426,7 +426,7 @@ export default function ServicePage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isCreating || isUpdating}
                 >
                   {isCreating || isUpdating

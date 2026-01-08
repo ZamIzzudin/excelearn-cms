@@ -132,7 +132,7 @@ export default function PagesPage() {
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
         >
           <Plus className="w-5 h-5" />
           Create Page
@@ -149,7 +149,7 @@ export default function PagesPage() {
               placeholder="Search pages..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           <div className="relative">
@@ -170,9 +170,7 @@ export default function PagesPage() {
                       setShowFilterDropdown(false);
                     }}
                     className={`w-full text-left px-4 py-2 hover:bg-slate-50 transition-colors first:rounded-t-xl last:rounded-b-xl capitalize ${
-                      statusFilter === status
-                        ? "bg-indigo-50 text-indigo-600"
-                        : ""
+                      statusFilter === status ? "bg-blue-50 text-blue-600" : ""
                     }`}
                   >
                     {status}
@@ -187,7 +185,7 @@ export default function PagesPage() {
       {/* Loading State */}
       {isLoading && (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
         </div>
       )}
 
@@ -224,7 +222,7 @@ export default function PagesPage() {
             {!searchTerm && (
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
               >
                 <Plus className="w-5 h-5" />
                 Create Page
@@ -318,7 +316,7 @@ export default function PagesPage() {
           {/* Infinite Scroll Trigger */}
           <div ref={observerTarget} className="flex justify-center py-8">
             {isFetchingNextPage && (
-              <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
+              <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
             )}
             {!hasNextPage && allPages.length > 0 && (
               <p className="text-slate-500 text-sm">No more pages to load</p>
@@ -352,7 +350,7 @@ export default function PagesPage() {
                     }
                   }}
                   placeholder="Enter page title"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
@@ -365,7 +363,7 @@ export default function PagesPage() {
                   value={newPageSlug}
                   onChange={(e) => setNewPageSlug(e.target.value)}
                   placeholder="page-url-slug"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <p className="text-xs text-slate-500 mt-1">
                   URL: /{newPageSlug || "page-url-slug"}
@@ -379,7 +377,7 @@ export default function PagesPage() {
                 <select
                   value={newPageType}
                   onChange={(e) => setNewPageType(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="Other">Other</option>
                   <option value="Schedule">Schedule</option>
@@ -403,7 +401,7 @@ export default function PagesPage() {
               <button
                 onClick={handleCreatePage}
                 disabled={!newPageTitle.trim()}
-                className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Create & Edit
               </button>
@@ -443,7 +441,7 @@ export default function PagesPage() {
                 No
               </button>
               <button
-                className="flex items-center justify-center gap-2 px-10 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                className="flex items-center justify-center gap-2 px-10 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                 type="button"
                 onClick={() => {
                   if (showModal === "DELETE") {

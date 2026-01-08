@@ -75,7 +75,10 @@ export default function ScheduleEditorPage() {
 
     // Check if benefits already has 4 items (maximum limit)
     if (formAction?.benefits && formAction.benefits.length >= 4) {
-      Notification("error", "Maximum 4 benefits allowed. Please remove one to add new benefit.");
+      Notification(
+        "error",
+        "Maximum 4 benefits allowed. Please remove one to add new benefit."
+      );
       return;
     }
 
@@ -344,14 +347,14 @@ export default function ScheduleEditorPage() {
 
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-6 pt-6 pb-3">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-slate-800">
-                Benefits
-              </h2>
-              <span className={`text-sm font-medium px-3 py-1 rounded-full ${
-                formAction?.benefits?.length >= 4 
-                  ? 'bg-red-100 text-red-700' 
-                  : 'bg-slate-100 text-slate-600'
-              }`}>
+              <h2 className="text-lg font-semibold text-slate-800">Benefits</h2>
+              <span
+                className={`text-sm font-medium px-3 py-1 rounded-full ${
+                  formAction?.benefits?.length >= 4
+                    ? "bg-red-100 text-red-700"
+                    : "bg-slate-100 text-slate-600"
+                }`}
+              >
                 {formAction?.benefits?.length || 0} / 4
               </span>
             </div>
@@ -370,7 +373,7 @@ export default function ScheduleEditorPage() {
                 <button
                   type="button"
                   onClick={handleAddBenefit}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-5 h-5" />
                   Add
@@ -555,7 +558,7 @@ export default function ScheduleEditorPage() {
                 scheduleId ? handleUpdateSchedule() : handleAddSchedule()
               }
               disabled={isPending}
-              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPending ? (
                 <>

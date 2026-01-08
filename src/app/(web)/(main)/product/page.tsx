@@ -100,7 +100,7 @@ export default function ProductPage() {
                 {product.product_name}
               </h3>
             </Tooltip>
-            <span className="px-3 py-1 text-xs font-medium bg-indigo-50 text-indigo-700 rounded-full">
+            <span className="px-3 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-full">
               {product.product_category?.replace("_", " ")}
             </span>
           </div>
@@ -127,7 +127,7 @@ export default function ProductPage() {
           <div className="flex gap-2 pt-4 border-t border-slate-200">
             <button
               onClick={() => router.push(`/product/editor?id=${product._id}`)}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
             >
               <Edit className="w-4 h-4" />
               Edit
@@ -156,7 +156,7 @@ export default function ProductPage() {
         </div>
         <button
           onClick={() => router.push("/product/editor")}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
         >
           <Plus className="w-5 h-5" />
           Add Product
@@ -174,7 +174,7 @@ export default function ProductPage() {
               placeholder="Search product..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
@@ -202,7 +202,7 @@ export default function ProductPage() {
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {CATEGORIES.map((cat) => (
                       <option key={cat.value} value={cat.value}>
@@ -219,7 +219,7 @@ export default function ProductPage() {
                   <select
                     value={sortOrder}
                     onChange={(e) => setSortOrder(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {SORT_OPTIONS.map((sort) => (
                       <option key={sort.value} value={sort.value}>
@@ -251,22 +251,22 @@ export default function ProductPage() {
           <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-slate-200">
             <span className="text-sm text-slate-600">Active filters:</span>
             {selectedCategory !== "All" && (
-              <span className="px-3 py-1 text-xs font-medium bg-indigo-50 text-indigo-700 rounded-full flex items-center gap-1">
+              <span className="px-3 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-full flex items-center gap-1">
                 {selectedCategory}
                 <button
                   onClick={() => setSelectedCategory("All")}
-                  className="ml-1 hover:text-indigo-900"
+                  className="ml-1 hover:text-blue-900"
                 >
                   ×
                 </button>
               </span>
             )}
             {debouncedSearchTerm && (
-              <span className="px-3 py-1 text-xs font-medium bg-indigo-50 text-indigo-700 rounded-full flex items-center gap-1">
+              <span className="px-3 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-full flex items-center gap-1">
                 Search: "{debouncedSearchTerm}"
                 <button
                   onClick={() => setSearchTerm("")}
-                  className="ml-1 hover:text-indigo-900"
+                  className="ml-1 hover:text-blue-900"
                 >
                   ×
                 </button>
@@ -279,7 +279,7 @@ export default function ProductPage() {
       {/* Loading State */}
       {isLoading ? (
         <div className="text-center py-12">
-          <div className="inline-block w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
           <p className="mt-4 text-slate-600">Loading products...</p>
         </div>
       ) : products && products.length > 0 ? (
@@ -306,7 +306,7 @@ export default function ProductPage() {
               <button
                 onClick={handleLoadMore}
                 disabled={isFetchingNextPage}
-                className="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
+                className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
               >
                 {isFetchingNextPage ? (
                   <>
@@ -336,7 +336,7 @@ export default function ProductPage() {
           </p>
           <button
             onClick={() => router.push("/product/editor")}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
           >
             <Plus className="w-5 h-5" />
             Add Product
@@ -358,7 +358,7 @@ export default function ProductPage() {
                 onClick={() => {
                   setSelected(null);
                 }}
-                className="flex items-center justify-center gap-2 px-10 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                className="flex items-center justify-center gap-2 px-10 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                 disabled={isPending}
               >
                 No
