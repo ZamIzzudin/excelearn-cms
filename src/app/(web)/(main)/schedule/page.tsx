@@ -118,9 +118,9 @@ export default function SchedulePage() {
       "https://forms.google.com/react-workshop-registration",
       "y/n",
       "Certificate|Lunch|Materials",
-      "BEGINNER",
-      "INDONESIA",
-      "OPEN_SEAT",
+      "BEGINNER/INTERMEDIATE/EXPERT",
+      "INDONESIA/INGGRIS",
+      "OPEN_SEAT/FULL_BOOKED",
     ];
 
     const wsData = [headers, sampleData];
