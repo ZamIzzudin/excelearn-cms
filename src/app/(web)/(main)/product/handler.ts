@@ -83,7 +83,7 @@ export async function CreateService(payload: any) {
     const { data: response } = await AxiosClient.post(
       "/product/add",
       payload,
-      headers
+      headers,
     );
 
     const { status, message, data } = response;
@@ -106,7 +106,7 @@ export async function UpdateService(id: string, payload: any) {
     const { data: response } = await AxiosClient.put(
       `/product/adjust/${id}`,
       payload,
-      headers
+      headers,
     );
 
     const { status, message, data } = response;
@@ -127,7 +127,7 @@ export async function UpdateService(id: string, payload: any) {
 export async function DeleteService(payload: string) {
   try {
     const { data: response } = await AxiosClient.delete(
-      `/product/takedown/${payload}`
+      `/product/takedown/${payload}`,
     );
 
     const { status, message } = response;

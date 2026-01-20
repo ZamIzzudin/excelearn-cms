@@ -156,7 +156,7 @@ export default function PromotionPage() {
           onError: () => {
             Notification("error", "Failed to update promo");
           },
-        }
+        },
       );
     } catch (e) {
       console.log(e);
@@ -593,7 +593,7 @@ export default function PromotionPage() {
                     setForm={(e: any) => setFormAction(e)}
                   />
                 </div>
-                {formAction?.banner ? (
+                {formAction?.banner?.data || formAction?.banner?.url ? (
                   <div className="relative mb-5 md:col-span-2">
                     <Image
                       src={formAction?.banner?.data || formAction?.banner?.url}
@@ -749,7 +749,7 @@ export default function PromotionPage() {
                           "success",
                           `Success ${
                             selected?.is_active ? "Deactivate" : "Activate"
-                          } Data`
+                          } Data`,
                         );
                         refetch();
                         setShowModal("NONE");
@@ -760,11 +760,11 @@ export default function PromotionPage() {
                           "error",
                           `Failed to ${
                             selected?.is_active ? "Deactivate" : "Activate"
-                          } Data`
+                          } Data`,
                         );
                         setSelected(null);
                       },
-                    }
+                    },
                   );
                 }}
                 disabled={activateLoading}
@@ -773,8 +773,8 @@ export default function PromotionPage() {
                 {activateLoading
                   ? "Processing..."
                   : selected?.is_active
-                  ? "Deactivate"
-                  : "Activate"}
+                    ? "Deactivate"
+                    : "Activate"}
               </button>
             </div>
           </div>

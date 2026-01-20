@@ -100,9 +100,14 @@ export default function ProductPage() {
                 {product.product_name}
               </h3>
             </Tooltip>
-            <span className="px-3 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-full">
-              {product.product_category?.replace("_", " ")}
-            </span>
+            <Tooltip
+              placement="top"
+              title={product?.product_category.replaceAll("_", " ") || "-"}
+            >
+              <span className="px-3 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-full truncate">
+                {product.product_category?.replaceAll("_", " ")}
+              </span>
+            </Tooltip>
           </div>
 
           <p className="text-sm text-slate-600 mb-4 line-clamp-2">

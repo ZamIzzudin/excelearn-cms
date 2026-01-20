@@ -56,7 +56,7 @@ export default function ProductEditorPage() {
     if (formAction?.benefits && formAction.benefits.length >= 4) {
       Notification(
         "error",
-        "Maximum 4 benefits allowed. Please remove one to add new benefit."
+        "Maximum 4 benefits allowed. Please remove one to add new benefit.",
       );
       return;
     }
@@ -153,7 +153,7 @@ export default function ProductEditorPage() {
             Notification("error", "Failed to Update Product");
             console.log(e);
           },
-        }
+        },
       );
     } catch (e) {
       console.log(e);
@@ -286,7 +286,7 @@ export default function ProductEditorPage() {
                           <X className="w-4 h-4" />
                         </button>
                       </div>
-                    )
+                    ),
                   )}
                 </div>
               )}
@@ -350,7 +350,7 @@ export default function ProductEditorPage() {
             <h2 className="text-lg font-semibold text-slate-800 mb-4">
               Banner
             </h2>
-            {formAction?.banner ? (
+            {formAction?.banner?.data || formAction?.banner?.url ? (
               <div className="relative mb-5">
                 <Image
                   src={formAction?.banner?.data || formAction?.banner?.url}

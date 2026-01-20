@@ -17,7 +17,7 @@ import {
 
 export default function PartnersTab() {
   const [showModal, setShowModal] = useState<"NONE" | "DELETE" | "INPUT">(
-    "NONE"
+    "NONE",
   );
   const [formAction, setFormAction] = useState<any>({});
   const [form] = Form.useForm();
@@ -99,7 +99,7 @@ export default function PartnersTab() {
           onError: () => {
             Notification("error", "Failed to add partner");
           },
-        }
+        },
       );
     } catch (e) {
       console.log(e);
@@ -222,7 +222,7 @@ export default function PartnersTab() {
                 setForm={setFormAction}
               />
 
-              {formAction?.logo ? (
+              {formAction?.logo?.data || formAction?.logo?.url ? (
                 <div className="mb-4">
                   <span className="block text-sm font-medium text-slate-700 mb-2">
                     Current Logo

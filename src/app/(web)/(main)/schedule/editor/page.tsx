@@ -49,7 +49,7 @@ export default function ScheduleEditorPage() {
         schedule_end: dayjs(existingSchedule.schedule_end, "HH:mm"),
         schedule_date: dayjs(existingSchedule.schedule_date),
         schedule_close_registration_date: dayjs(
-          existingSchedule.schedule_close_registration_date
+          existingSchedule.schedule_close_registration_date,
         ),
       };
 
@@ -77,7 +77,7 @@ export default function ScheduleEditorPage() {
     if (formAction?.benefits && formAction.benefits.length >= 4) {
       Notification(
         "error",
-        "Maximum 4 benefits allowed. Please remove one to add new benefit."
+        "Maximum 4 benefits allowed. Please remove one to add new benefit.",
       );
       return;
     }
@@ -108,7 +108,7 @@ export default function ScheduleEditorPage() {
       formData.append("schedule_date", formAction.schedule_date);
       formData.append(
         "schedule_close_registration_date",
-        formAction.schedule_close_registration_date
+        formAction.schedule_close_registration_date,
       );
       formData.append("location", formAction.location);
       formData.append("schedule_start", formAction.schedule_start);
@@ -121,7 +121,7 @@ export default function ScheduleEditorPage() {
       formData.append("link", formAction.link || "");
       formData.append(
         "is_assestment",
-        formAction.is_assestment ? "true" : "false"
+        formAction.is_assestment ? "true" : "false",
       );
 
       formAction.benefits?.forEach((benefit: string) => {
@@ -162,20 +162,20 @@ export default function ScheduleEditorPage() {
       formData.append("schedule_date", formAction.schedule_date);
       formData.append(
         "schedule_close_registration_date",
-        formAction.schedule_close_registration_date
+        formAction.schedule_close_registration_date,
       );
       formData.append("location", formAction.location);
       formData.append(
         "schedule_start",
         typeof formAction.schedule_start === "string"
           ? formAction.schedule_start
-          : dayjs(formAction.schedule_start).format("HH:mm")
+          : dayjs(formAction.schedule_start).format("HH:mm"),
       );
       formData.append(
         "schedule_end",
         typeof formAction.schedule_end === "string"
           ? formAction.schedule_end
-          : dayjs(formAction.schedule_end).format("HH:mm")
+          : dayjs(formAction.schedule_end).format("HH:mm"),
       );
       formData.append("skill_level", formAction.skill_level);
       formData.append("status", formAction.status);
@@ -185,7 +185,7 @@ export default function ScheduleEditorPage() {
       formData.append("link", formAction.link || "");
       formData.append(
         "is_assestment",
-        formAction.is_assestment ? "true" : "false"
+        formAction.is_assestment ? "true" : "false",
       );
 
       formAction.benefits?.forEach((benefit: string) => {
@@ -212,7 +212,7 @@ export default function ScheduleEditorPage() {
             Notification("error", "Failed to Update Schedule");
             console.log(e);
           },
-        }
+        },
       );
     } catch (e) {
       console.log(e);
@@ -397,7 +397,7 @@ export default function ScheduleEditorPage() {
                           <X className="w-4 h-4" />
                         </button>
                       </div>
-                    )
+                    ),
                   )}
                 </div>
               )}
@@ -500,7 +500,7 @@ export default function ScheduleEditorPage() {
             <h2 className="text-lg font-semibold text-slate-800 mb-4">
               Banner
             </h2>
-            {formAction?.banner ? (
+            {formAction?.banner?.data || formAction?.banner?.url ? (
               <div className="relative mb-5">
                 <Image
                   src={formAction?.banner?.data || formAction?.banner?.url}

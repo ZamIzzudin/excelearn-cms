@@ -17,7 +17,7 @@ import {
 
 export default function TestimonialsTab() {
   const [showModal, setShowModal] = useState<"NONE" | "INPUT" | "DELETE">(
-    "NONE"
+    "NONE",
   );
   const [formAction, setFormAction] = useState<any>({});
   const [form] = Form.useForm();
@@ -104,7 +104,7 @@ export default function TestimonialsTab() {
           onError: () => {
             Notification("error", "Failed to add partner");
           },
-        }
+        },
       );
     } catch (e) {
       console.log(e);
@@ -261,7 +261,7 @@ export default function TestimonialsTab() {
                 setForm={setFormAction}
               />
 
-              {formAction.photo ? (
+              {formAction?.photo?.data || formAction?.photo?.url ? (
                 <div className="mb-4">
                   <span className="block text-sm font-medium text-slate-700 mb-2">
                     Current Photo
@@ -328,8 +328,8 @@ export default function TestimonialsTab() {
                   {isPending
                     ? "Saving..."
                     : formAction?._id
-                    ? "Update"
-                    : "Create"}
+                      ? "Update"
+                      : "Create"}
                 </button>
               </div>
             </Form>
