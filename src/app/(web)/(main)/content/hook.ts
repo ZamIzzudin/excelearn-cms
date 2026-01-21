@@ -14,6 +14,8 @@ import {
   UpdateStatisticService,
   SocmedListService,
   UpdateSocmedService,
+  AssetListService,
+  UpdateAssetService,
 } from "./handler";
 
 export const usePartner = (): UseQueryResult<any> => {
@@ -195,6 +197,37 @@ export const useUpdateSocmed = () => {
         return { data: response.data };
       } catch (error: any) {
         throw new Error(error.message || "Failed to update social media");
+      }
+    },
+  });
+};
+
+export const useAssets = (): UseQueryResult<any> => {
+  return useQuery({
+    queryKey: ["assets-list"],
+    queryFn: async () => {
+      try {
+        const { data, status } = await AssetListService();
+        if (status !== 200) throw new Error();
+        return data;
+      } catch (e) {
+        return null;
+      }
+    },
+    refetchOnWindowFocus: false,
+  });
+};
+
+export const useUpdateAsset = () => {
+  return useMutation({
+    mutationKey: ["update_asset"],
+    mutationFn: async ({ id, payload }: { id: string; payload: FormData }) => {
+      try {
+        const response: any = await UpdateAssetService(id, payload);
+        if (response.status !== 200) throw new Error(response.message);
+        return { data: response.data };
+      } catch (error: any) {
+        throw new Error(error.message || "Failed to update asset");
       }
     },
   });

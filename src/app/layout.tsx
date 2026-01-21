@@ -14,6 +14,9 @@ import "@/styles/globals.css";
 export const metadata: Metadata = {
   title: "CMS Excelearn",
   description: "[INTERNAL USAGE] Content Management System (CMS)",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({
@@ -23,7 +26,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      {/* <link rel="icon" href="/Logo.png" /> */}
       <body>
         <Suspense fallback={<LoadingPage />}>
           <Middleware>

@@ -7,12 +7,14 @@ import StatisticsTab from "./tabs/StatisticsTab";
 import PartnersTab from "./tabs/PartnersTab";
 import TestimonialsTab from "./tabs/TestimonialsTab";
 import SocialMediaTab from "./tabs/SocialMediaTab";
+import AssetsTab from "./tabs/AssetsTab";
 
 const tabs = [
   { id: "statistics", name: "Statistics" },
   { id: "partners", name: "Partners" },
   { id: "testimonials", name: "Testimonials" },
   { id: "socmed", name: "Social Media" },
+  { id: "assets", name: "Assets" },
 ];
 
 export default function ContentPage() {
@@ -57,6 +59,7 @@ export default function ContentPage() {
           {activeTab === "partners" && <PartnersTab />}
           {activeTab === "testimonials" && <TestimonialsTab />}
           {activeTab === "socmed" && <SocialMediaTab />}
+          {activeTab === "assets" && <AssetsTab />}
         </div>
       </div>
     </div>

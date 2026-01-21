@@ -262,4 +262,50 @@ export async function UpdateSocmedService(id: string, payload: any) {
   }
 }
 
+export async function AssetListService() {
+  try {
+    const { data: response } = await AxiosClient.get("/assets/list");
+
+    const { status, message, data } = response;
+
+    if (status !== 200) throw new Error(message);
+
+    return {
+      status,
+      message,
+      data,
+    };
+  } catch (error: any) {
+    console.log(error);
+    return error.message;
+  }
+}
+
+export async function UpdateAssetService(id: string, payload: FormData) {
+  try {
+    const { data: response } = await AxiosClient.put(
+      `/assets/adjust/${id}`,
+      payload,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    const { status, message, data } = response;
+
+    if (status !== 200) throw new Error(message);
+
+    return {
+      status,
+      message,
+      data,
+    };
+  } catch (error: any) {
+    console.log(error);
+    return error?.response?.data;
+  }
+}
+
 
