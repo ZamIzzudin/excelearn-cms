@@ -1,6 +1,6 @@
 /** @format */
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Input,
   InputNumber,
@@ -12,11 +12,13 @@ import {
   Switch,
   Radio,
   Checkbox,
+  Spin,
 } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
-import { CircleAlert } from "lucide-react";
+import { UploadOutlined, LoadingOutlined } from "@ant-design/icons";
+import { CircleAlert, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import dayjs from "dayjs";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -31,6 +33,7 @@ type InputFormProps = {
     | "date"
     | "datetime"
     | "file"
+    | "file-cloud"
     | "switch"
     | "radio"
     | "checkbox"
@@ -49,6 +52,8 @@ type InputFormProps = {
   accept?: string;
   size?: "small" | "middle" | "large";
   variant?: "outlined" | "filled" | "borderless";
+  folder?: string;
+  maxSize?: number;
 };
 
 const InputForm: React.FC<InputFormProps> = ({
@@ -67,7 +72,11 @@ const InputForm: React.FC<InputFormProps> = ({
   accept,
   size = "large",
   variant = "outlined",
+  folder = "excelearn/uploads",
+  maxSize,
 }) => {
+  const [isUploading, setIsUploading] = useState(false);
+
   const handleChange = (value: any) => {
     setForm((prev) => ({
       ...prev,
@@ -214,15 +223,18 @@ const InputForm: React.FC<InputFormProps> = ({
       break;
 
     case "file":
-      const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB in bytes
+      const FILE_MAX_SIZE = maxSize || 2 * 1024 * 1024; // Default 2MB
+      const fileSizeLabel = FILE_MAX_SIZE >= 1024 * 1024 
+        ? `${FILE_MAX_SIZE / (1024 * 1024)}MB` 
+        : `${FILE_MAX_SIZE / 1024}KB`;
       inputElement = (
         <Upload
           fileList={[]}
           onChange={(info: any) => {
             if (info?.file) {
-              if (info.file.size > MAX_FILE_SIZE) {
+              if (info.file.size > FILE_MAX_SIZE) {
                 import("antd").then(({ message }) => {
-                  message.error("Ukuran file maksimal 2MB");
+                  message.error(`Ukuran file maksimal ${fileSizeLabel}`);
                 });
                 return;
               }
@@ -245,19 +257,155 @@ const InputForm: React.FC<InputFormProps> = ({
           accept={accept}
           className="w-full"
         >
-          <div
-            className={cn(
-              "border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-primary-300 transition-colors cursor-pointer",
-              disabled && "opacity-50 cursor-not-allowed"
-            )}
-          >
-            <UploadOutlined className="text-2xl text-slate-400 mb-2" />
-            <p className="text-slate-600">Click or drag files to upload</p>
-            {accept && (
-              <p className="text-xs text-slate-400 mt-1">Accepted: {accept}</p>
-            )}
-            <p className="text-xs text-slate-400 mt-1">Maksimal 2MB</p>
-          </div>
+          {form[name]?.data ? (
+            <div className="relative">
+              <img
+                src={form[name].data}
+                alt="Preview"
+                className="w-full h-32 object-cover rounded-xl border-2 border-slate-200"
+              />
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleChange(null);
+                }}
+                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ) : (
+            <div
+              className={cn(
+                "border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-primary-300 transition-colors cursor-pointer",
+                disabled && "opacity-50 cursor-not-allowed"
+              )}
+            >
+              <UploadOutlined className="text-2xl text-slate-400 mb-2" />
+              <p className="text-slate-600">Click or drag files to upload</p>
+              {accept && (
+                <p className="text-xs text-slate-400 mt-1">Accepted: {accept}</p>
+              )}
+              <p className="text-xs text-slate-400 mt-1">Maksimal {fileSizeLabel}</p>
+            </div>
+          )}
+        </Upload>
+      );
+      break;
+
+    case "file-cloud":
+      const IMAGE_MAX_SIZE = 10 * 1024 * 1024; // 10MB untuk image
+      const VIDEO_MAX_SIZE = 100 * 1024 * 1024; // 100MB untuk video
+      
+      const getFileSizeLimit = (file: File) => {
+        if (file.type.startsWith("video/")) {
+          return VIDEO_MAX_SIZE;
+        }
+        return maxSize || IMAGE_MAX_SIZE;
+      };
+
+      const formatSize = (bytes: number) => {
+        if (bytes >= 1024 * 1024) {
+          return `${bytes / (1024 * 1024)}MB`;
+        }
+        return `${bytes / 1024}KB`;
+      };
+      
+      const handleCloudUpload = async (file: File) => {
+        const sizeLimit = getFileSizeLimit(file);
+        
+        if (file.size > sizeLimit) {
+          const fileType = file.type.startsWith("video/") ? "Video" : "Image";
+          import("antd").then(({ message }) => {
+            message.error(`Ukuran ${fileType} maksimal ${formatSize(sizeLimit)}`);
+          });
+          return;
+        }
+
+        setIsUploading(true);
+        try {
+          const result = await uploadToCloudinary(file, folder);
+          handleChange({
+            url: result.secure_url,
+            public_id: result.public_id,
+            name: file.name,
+            size: file.size,
+            type: file.type,
+          });
+          import("antd").then(({ message }) => {
+            message.success("File berhasil diupload");
+          });
+        } catch (error: any) {
+          import("antd").then(({ message }) => {
+            message.error(error.message || "Gagal mengupload file");
+          });
+        } finally {
+          setIsUploading(false);
+        }
+      };
+
+      inputElement = (
+        <Upload
+          fileList={[]}
+          onChange={(info: any) => {
+            if (info?.file) {
+              handleCloudUpload(info.file);
+            }
+          }}
+          beforeUpload={() => false}
+          accept={accept}
+          className="w-full"
+          disabled={disabled || isUploading}
+        >
+          {isUploading ? (
+            <div className="border-2 border-dashed border-blue-300 rounded-xl p-6 text-center bg-blue-50">
+              <Spin indicator={<LoadingOutlined className="text-2xl text-blue-500" spin />} />
+              <p className="text-blue-600 mt-2">Mengupload file...</p>
+            </div>
+          ) : form[name]?.url ? (
+            <div className="relative">
+              {form[name].type?.startsWith("video/") ? (
+                <video
+                  src={form[name].url}
+                  className="w-full h-32 object-cover rounded-xl border-2 border-slate-200"
+                />
+              ) : (
+                <img
+                  src={form[name].url}
+                  alt="Preview"
+                  className="w-full h-32 object-cover rounded-xl border-2 border-slate-200"
+                />
+              )}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleChange(null);
+                }}
+                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+              >
+                <X size={14} />
+              </button>
+              <p className="text-xs text-slate-500 mt-1 truncate">{form[name].name}</p>
+            </div>
+          ) : (
+            <div
+              className={cn(
+                "border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-primary-300 transition-colors cursor-pointer",
+                disabled && "opacity-50 cursor-not-allowed"
+              )}
+            >
+              <UploadOutlined className="text-2xl text-slate-400 mb-2" />
+              <p className="text-slate-600">Click or drag files to upload</p>
+              {accept && (
+                <p className="text-xs text-slate-400 mt-1">Accepted: {accept}</p>
+              )}
+              <p className="text-xs text-slate-400 mt-1">
+                Image maks {formatSize(maxSize || IMAGE_MAX_SIZE)}, Video maks {formatSize(VIDEO_MAX_SIZE)}
+              </p>
+            </div>
+          )}
         </Upload>
       );
       break;

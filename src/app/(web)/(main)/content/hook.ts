@@ -16,6 +16,7 @@ import {
   UpdateSocmedService,
   AssetListService,
   UpdateAssetService,
+  UpdateAssetUrlService,
 } from "./handler";
 
 export const usePartner = (): UseQueryResult<any> => {
@@ -224,6 +225,27 @@ export const useUpdateAsset = () => {
     mutationFn: async ({ id, payload }: { id: string; payload: FormData }) => {
       try {
         const response: any = await UpdateAssetService(id, payload);
+        if (response.status !== 200) throw new Error(response.message);
+        return { data: response.data };
+      } catch (error: any) {
+        throw new Error(error.message || "Failed to update asset");
+      }
+    },
+  });
+};
+
+export const useUpdateAssetUrl = () => {
+  return useMutation({
+    mutationKey: ["update_asset_url"],
+    mutationFn: async ({
+      id,
+      payload,
+    }: {
+      id: string;
+      payload: { url?: string; fallback_url?: string };
+    }) => {
+      try {
+        const response: any = await UpdateAssetUrlService(id, payload);
         if (response.status !== 200) throw new Error(response.message);
         return { data: response.data };
       } catch (error: any) {

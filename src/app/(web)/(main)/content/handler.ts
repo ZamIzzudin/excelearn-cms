@@ -308,4 +308,29 @@ export async function UpdateAssetService(id: string, payload: FormData) {
   }
 }
 
+export async function UpdateAssetUrlService(
+  id: string,
+  payload: { url?: string; fallback_url?: string }
+) {
+  try {
+    const { data: response } = await AxiosClient.put(
+      `/assets/adjust-url/${id}`,
+      payload
+    );
+
+    const { status, message, data } = response;
+
+    if (status !== 200) throw new Error(message);
+
+    return {
+      status,
+      message,
+      data,
+    };
+  } catch (error: any) {
+    console.log(error);
+    return error?.response?.data;
+  }
+}
+
 
