@@ -214,11 +214,18 @@ const InputForm: React.FC<InputFormProps> = ({
       break;
 
     case "file":
+      const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB in bytes
       inputElement = (
         <Upload
           fileList={[]}
           onChange={(info: any) => {
             if (info?.file) {
+              if (info.file.size > MAX_FILE_SIZE) {
+                import("antd").then(({ message }) => {
+                  message.error("Ukuran file maksimal 2MB");
+                });
+                return;
+              }
               const reader = new FileReader();
               reader.onload = (event) => {
                 const imageData = {
@@ -249,6 +256,7 @@ const InputForm: React.FC<InputFormProps> = ({
             {accept && (
               <p className="text-xs text-slate-400 mt-1">Accepted: {accept}</p>
             )}
+            <p className="text-xs text-slate-400 mt-1">Maksimal 2MB</p>
           </div>
         </Upload>
       );

@@ -46,8 +46,14 @@ export default function UploadBannerModal({
 
   const { mutate: updateSchedule, isPending } = useUpdateSchedule();
 
+  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB in bytes
+
   const handleFileSelect = (scheduleId: string, file: File) => {
     if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        Notification("error", "Ukuran file maksimal 2MB");
+        return;
+      }
       const preview = URL.createObjectURL(file);
       setUploadedBanners((prev) => ({
         ...prev,
@@ -213,7 +219,7 @@ export default function UploadBannerModal({
                               Click to upload banner
                             </span>
                             <span className="text-xs text-slate-400 mt-1">
-                              PNG, JPG up to 5MB
+                              PNG, JPG maksimal 2MB
                             </span>
                             <input
                               type="file"

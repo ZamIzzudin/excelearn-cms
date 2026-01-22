@@ -48,6 +48,8 @@ export default function AssetsTab() {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fallbackInputRef = useRef<HTMLInputElement>(null);
+  
+  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB in bytes
 
   const { data: assets, isLoading, refetch } = useAssets();
   const { mutate: updateAsset, isPending } = useUpdateAsset();
@@ -63,6 +65,12 @@ export default function AssetsTab() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: "main" | "fallback") => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE) {
+      Notification("error", "Ukuran file maksimal 2MB");
+      e.target.value = "";
+      return;
+    }
 
     if (type === "main") {
       setSelectedFile(file);
