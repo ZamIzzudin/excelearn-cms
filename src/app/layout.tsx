@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   title: "CMS Excelearn",
   description: "[INTERNAL USAGE] Content Management System (CMS)",
   icons: {
-    icon: "/logo.png",
+    icon: "/logo-simple.png",
   },
 };
 
